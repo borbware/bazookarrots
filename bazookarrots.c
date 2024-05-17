@@ -3,23 +3,52 @@
 // ██  ▀  █▄  ▀██▄ ▀ ▄█ ▄▀▀ █  │  ▀█▄  ▄▀██ ▄█▄█ ██▀▄ ██  ▄███
 // █  █ █  ▀▀  ▄█  █  █ ▀▄█ █▄ │  ▄▄█▀ ▀▄██ ██ █ ██▀  ▀█▄ ▀█▄▄
 // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀────────┘                 ▀▀
-//  Multi-directionnal scrolling sample
-//
-// Scrolling parameters (source data format, output window and used fetaures) 
-// are defined in  msxgl_config.h for optimization purpose (the 'scroll' module 
-// is optimized at compile time to useonly necessary features).
+//  Sprite tool sample
 //─────────────────────────────────────────────────────────────────────────────
+
+//=============================================================================
+// INCLUDES
+//=============================================================================
 #include "msxgl.h"
-#include "math.h"
+#include "bios.h"
+#include "memory.h"
+#include "fsm.h"
+#include "sprite_fx.h"
 
 //=============================================================================
 // DEFINES
 //=============================================================================
 
-// Library's logo
-#define MSX_GL "\x02\x03\x04\x05"
+// Pattern enums
+#define PATTERN_16_NUM		(u8)(6*2*4)
+#define SPRITE_8_NUM		16
 
-#define SPLIT_LINE (106 - 5)
+// Functions
+typedef void (*fxFunc)(const u8*, u8*);
+
+// 8-bits unsigned vector structure
+typedef struct
+{
+	const u8* Name;
+	fxFunc    Func;
+} EffectInfo;
+
+// Function prototypes
+void Init16();
+void Update16();
+void Init8();
+void Update8();
+
+void DoCropLeft8(const u8* src, u8* dest);
+void DoCropRight8(const u8* src, u8* dest);
+void DoCropTop8(const u8* src, u8* dest);
+void DoCropBottom8(const u8* src, u8* dest);
+void DoMask8(const u8* src, u8* dest);
+void SpriteFX_FlipVertical8(const u8* src, u8* dest);
+void SpriteFX_FlipHorizontal8(const u8* src, u8* dest);
+void SpriteFX_RotateRight8(const u8* src, u8* dest);
+void SpriteFX_RotateLeft8(const u8* src, u8* dest);
+void SpriteFX_RotateHalfTurn8(const u8* src, u8* dest);
 
 //=============================================================================
 // READ-ONLY DATA
@@ -27,76 +56,312 @@
 
 // Fonts
 #include "font/font_mgl_sample8.h"
-// Tiles
-#include "content/tile/data_tile_gm2.h"
-#include "content/tile/data_map_gm2.h"
-// Sprites by GrafxKid (https://opengameart.org/content/super-random-sprites)
-#include "content/data_sprt_layer.h"
+#include "font/font_mgl_symbol1.h"
 
-const u8 g_BallColor[8] = { COLOR_WHITE, COLOR_LIGHT_GREEN, COLOR_LIGHT_RED, COLOR_LIGHT_YELLOW, COLOR_LIGHT_BLUE, COLOR_MEDIUM_GREEN, COLOR_MEDIUM_RED, COLOR_MAGENTA };
+// Sprite by GrafxKid (https://opengameart.org/content/super-random-sprites)
+#include "content/data_sprt_16or.h"
 
-const u8 g_DataSprtBall[] =
+// Character animation
+const u8 g_CharAnim[] = { '|', '\\', '-', '/' };
+
+// 
+const u8 g_Mask1[32] = 
 {
-// ======== Frame[0]
-// ---- Layer[0] (16x16 0,0 1,1 inc 2)
-// Sprite[0] (offset:0)
-	0x07, /* .....### */ 
-	0x1F, /* ...##### */ 
-	0x3F, /* ..###### */ 
-	0x7F, /* .####### */ 
-	0x7F, /* .####### */ 
-	0xFF, /* ######## */ 
-	0xFF, /* ######## */ 
-	0xFF, /* ######## */ 
-// Sprite[1] (offset:8)
-	0xFF, /* ######## */ 
-	0xFF, /* ######## */ 
-	0xFF, /* ######## */ 
-	0x7F, /* .####### */ 
-	0x7F, /* .####### */ 
-	0x3F, /* ..###### */ 
-	0x1F, /* ...##### */ 
-	0x07, /* .....### */ 
-// Sprite[2] (offset:16)
-	0xE0, /* ###..... */ 
-	0xF8, /* #####... */ 
-	0xFC, /* ######.. */ 
-	0xFE, /* #######. */ 
-	0xFE, /* #######. */ 
-	0xFF, /* ######## */ 
-	0xFF, /* ######## */ 
-	0xFF, /* ######## */ 
-// Sprite[3] (offset:24)
-	0xFF, /* ######## */ 
-	0xFF, /* ######## */ 
-	0xFF, /* ######## */ 
-	0xFE, /* #######. */ 
-	0xFE, /* #######. */ 
-	0xFC, /* ######.. */ 
-	0xF8, /* #####... */ 
-	0xE0, /* ###..... */ 
+	0b00000111, 
+	0b00011111, 
+	0b00111111, 
+	0b01111111, 
+	0b01111111, 
+	0b11111111, 
+	0b11111111, 
+	0b11111111, 
+	0b11111111, 
+	0b11111111, 
+	0b11111111, 
+	0b01111111, 
+	0b01111111, 
+	0b00111111, 
+	0b00011111, 
+	0b00000111, 
+
+	0b11100000,
+	0b11111000,
+	0b11111100,
+	0b11111110,
+	0b11111110,
+	0b11111111,
+	0b11111111,
+	0b11111111,
+	0b11111111,
+	0b11111111,
+	0b11111111,
+	0b11111110,
+	0b11111110,
+	0b11111100,
+	0b11111000,
+	0b11100000,
+};
+
+// 
+const u8 g_Mask2[32] = 
+{
+	0b00000000,
+	0b00000000,
+	0b00000011,
+	0b00001111,
+	0b00011111,
+	0b00011111,
+	0b00111111,
+	0b00111111,
+	0b00111111,
+	0b00111111,
+	0b00011111,
+	0b00011111,
+	0b00001111,
+	0b00000011,
+	0b00000000,
+	0b00000000,
+
+	0b00000000,
+	0b00000000,
+	0b11000000,
+	0b11110000,
+	0b11111000,
+	0b11111000,
+	0b11111100,
+	0b11111100,
+	0b11111100,
+	0b11111100,
+	0b11111000,
+	0b11111000,
+	0b11110000,
+	0b11000000,
+	0b00000000,
+	0b00000000,
+};
+
+// 
+const u8 g_Mask3[32] = 
+{
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000011,
+	0b00000111,
+	0b00001111,
+	0b00001111,
+	0b00001111,
+	0b00001111,
+	0b00000111,
+	0b00000011,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b11000000,
+	0b11100000,
+	0b11110000,
+	0b11110000,
+	0b11110000,
+	0b11110000,
+	0b11100000,
+	0b11000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+};
+
+// 
+const u8 g_Mask4[32] = 
+{
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000001,
+	0b00000011,
+	0b00000011,
+	0b00000001,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b10000000,
+	0b11000000,
+	0b11000000,
+	0b10000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
 };
 
 //
-const u16 g_SATAddr[] = { 0x1E00, 0x4200 };
+const u8 g_Mask8[8][8] =
+{
+	{
+		0b11111111,
+		0b11111111,
+		0b11111111,
+		0b11111111,
+		0b11111111,
+		0b11111111,
+		0b11111111,
+		0b11111111,
+	},
+	{
+		0b11111111,
+		0b11111111,
+		0b11111111,
+		0b11101111,
+		0b11111111,
+		0b11111111,
+		0b11111111,
+		0b11111111,
+	},
+	{
+		0b11111111,
+		0b11111111,
+		0b11111111,
+		0b11100111,
+		0b11100111,
+		0b11111111,
+		0b11111111,
+		0b11111111,
+	},
+	{
+		0b11111111,
+		0b11111111,
+		0b11100111,
+		0b11000011,
+		0b11000011,
+		0b11100111,
+		0b11111111,
+		0b11111111,
+	},
+	{
+		0b11111111,
+		0b11100111,
+		0b11000011,
+		0b10000001,
+		0b10000001,
+		0b11000011,
+		0b11100111,
+		0b11111111,
+	},
+	{
+		0b11111111,
+		0b11000011,
+		0b10000001,
+		0b10000001,
+		0b10000001,
+		0b10000001,
+		0b11100111,
+		0b11111111,
+	},
+	{
+		0b11000011,
+		0b10000001,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b10000001,
+		0b11000011,
+	},
+	{
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+	},
+};
+
+//
+const u8* g_MaskAnim[] = { 1, g_Mask1, g_Mask2, g_Mask3, g_Mask4, 0, g_Mask4, g_Mask3, g_Mask2, g_Mask1 };
+
+//
+const u8* g_RotAnim[] = { g_PatternData, g_PatternDataRotLeft, g_PatternDataRotHalf, g_PatternDataRotRight };
+
+//
+const FSM_State g_State8  = { 0, Init8,  Update8,  NULL };
+const FSM_State g_State16 = { 0, Init16, Update16, NULL };
+
+//
+const EffectInfo g_Effect[] =
+{
+	{ "None",            NULL },
+	{ "Crop Left",       DoCropLeft8 },
+	{ "Crop Right",      DoCropRight8 },
+	{ "Crop Top",        DoCropTop8 },
+	{ "Crop Bottom",     DoCropBottom8 },
+	{ "Mask",            DoMask8 },
+	{ "Flip Vertical",   SpriteFX_FlipVertical8 },
+	{ "Flip Horizontal", SpriteFX_FlipHorizontal8 },
+	{ "Rotate Right",    SpriteFX_RotateRight8 },
+	{ "Rotate Left",     SpriteFX_RotateLeft8 },
+	{ "Rotate 180",      SpriteFX_RotateHalfTurn8 },
+};
 
 //=============================================================================
 // MEMORY DATA
 //=============================================================================
 
-struct VDP_Sprite g_SpriteData[29*2];
-
 // Screen mode setting index
 u8 g_VBlank = 0;
 u8 g_Frame = 0;
+
+// Sprite data
+u8 g_PatternData[PATTERN_16_NUM * 8];
+u8 g_PatternDataRotRight[PATTERN_16_NUM * 8];
+u8 g_PatternDataRotLeft[PATTERN_16_NUM * 8];
+u8 g_PatternDataRotHalf[PATTERN_16_NUM * 8];
+
+// Sprite buffer
+u8 g_Buffer1[32];
+u8 g_Buffer2[32];
+u8 g_Buffer3[32];
+u8 g_Buffer4[32];
+
+// Sprite X position
+u8 g_PosX0;
+u8 g_PosX1;
+
+//
+u8 g_FXIndex;
+VectorU8 g_SpritePos[SPRITE_8_NUM];
 
 //=============================================================================
 // HELPER FUNCTIONS
 //=============================================================================
 
 //-----------------------------------------------------------------------------
-//
-void VDP_InterruptHandler() // VBlank
+// H_TIMI interrupt hook
+void VBlankHook()
 {
 	g_VBlank = 1;
 }
@@ -108,17 +373,331 @@ void WaitVBlank()
 	while(g_VBlank == 0) {}
 	g_VBlank = 0;
 	g_Frame++;
-	VDP_SetSpriteAttributeTable(g_SATAddr[0]);
-	VDP_SetColor(COLOR_DARK_BLUE);
 }
 
+//-----------------------------------------------------------------------------
+// Fill sprite pattern
+void VDP_FillSpritePattern(u8 val, u8 index, u8 count)
+{
+	u16 low = g_SpritePatternLow;
+	low += (index * 8);
+	VDP_FillVRAM(val, low, g_SpritePatternHigh, count * 8);
+}
 
 //-----------------------------------------------------------------------------
 //
-void VDP_HBlankHandler()
+void DoCropLeft8(const u8* src, u8* dest) { SpriteFX_CropLeft8(src, dest, (g_Frame >> 3) % 8); }
+
+//-----------------------------------------------------------------------------
+//
+void DoCropRight8(const u8* src, u8* dest) { SpriteFX_CropRight8(src, dest, (g_Frame >> 3) % 8); }
+
+//-----------------------------------------------------------------------------
+//
+void DoCropTop8(const u8* src, u8* dest) { SpriteFX_CropTop8(src, dest, (g_Frame >> 3) % 8); }
+
+//-----------------------------------------------------------------------------
+//
+void DoCropBottom8(const u8* src, u8* dest) { SpriteFX_CropBottom8(src, dest, (g_Frame >> 3) % 8); }
+
+//-----------------------------------------------------------------------------
+//
+void DoMask8(const u8* src, u8* dest) { SpriteFX_Mask8(src, dest, g_Mask8[(g_Frame >> 3) % 8]); }
+
+//-----------------------------------------------------------------------------
+// Initialize 16x16
+void Init16()
 {
-	VDP_SetSpriteAttributeTable(g_SATAddr[1]);
-	VDP_SetColor(COLOR_LIGHT_BLUE);
+	// Setup screen
+	VDP_SetMode(VDP_MODE_SCREEN4);
+	VDP_SetColor(COLOR_DARK_BLUE);
+	VDP_ClearVRAM();
+	
+	// Setup sprite
+	VDP_EnableSprite(TRUE);
+	VDP_SetSpriteFlag(VDP_SPRITE_SIZE_16);
+
+	// Load 16x16 sprites (Pattern 96~143)
+	u8* ptr = g_PatternData;
+	for(u8 i5 = 0; i5 < 6; i5++)
+	{
+		Mem_Copy((u8*)g_DataSprt16or + (i5 * 2 +  0) * 8, ptr, 8); ptr += 8;
+		Mem_Copy((u8*)g_DataSprt16or + (i5 * 2 + 12) * 8, ptr, 8); ptr += 8;
+		Mem_Copy((u8*)g_DataSprt16or + (i5 * 2 +  1) * 8, ptr, 8); ptr += 8;
+		Mem_Copy((u8*)g_DataSprt16or + (i5 * 2 + 13) * 8, ptr, 8); ptr += 8;
+	}
+	for(u8 i6 = 0; i6 < 6; i6++)
+	{
+		Mem_Copy((u8*)g_DataSprt16or + (i6 * 2 + 24) * 8, ptr, 8); ptr += 8;
+		Mem_Copy((u8*)g_DataSprt16or + (i6 * 2 + 36) * 8, ptr, 8); ptr += 8;
+		Mem_Copy((u8*)g_DataSprt16or + (i6 * 2 + 25) * 8, ptr, 8); ptr += 8;
+		Mem_Copy((u8*)g_DataSprt16or + (i6 * 2 + 37) * 8, ptr, 8); ptr += 8;
+	}
+
+	// Initialize 16x16 OR sprites
+	VDP_SetPaletteEntry(2, RGB16(7, 7, 7));
+	VDP_SetPaletteEntry(3, RGB16(6, 4, 1));
+	VDP_SetSpriteExUniColor(0, 0, 32-1, 0, 0x02);
+	VDP_SetSpriteExUniColor(1, 0, 32-1, 4, VDP_SPRITE_CC + 0x01);
+	VDP_SetSpriteExUniColor(2, 0, 80-1, 8, 0x02);
+	VDP_SetSpriteExUniColor(3, 0, 80-1, 12, VDP_SPRITE_CC + 0x01);
+	VDP_SetSpriteExUniColor(4, 0, 128-1, 16, 0x02);
+	VDP_SetSpriteExUniColor(5, 0, 128-1, 20, VDP_SPRITE_CC + 0x01);
+	VDP_SetSpriteExUniColor(6, 64, (u8)(176-1), 24, 0x02);
+	VDP_SetSpriteExUniColor(7, 64, (u8)(176-1), 28, VDP_SPRITE_CC + 0x01);
+	VDP_HideSpriteFrom(8);
+	g_PosX0 = 0;
+	g_PosX1 = 0;
+
+	// Compute transformed sprite data
+	loop(i, 6 * 2)
+	{
+		u16 idx = i * 4 * 8;
+		SpriteFX_RotateRight16(&g_PatternData[idx], &g_PatternDataRotRight[idx]);
+		SpriteFX_RotateLeft16(&g_PatternData[idx], &g_PatternDataRotLeft[idx]);
+		SpriteFX_RotateHalfTurn16(&g_PatternData[idx], &g_PatternDataRotHalf[idx]);
+	}
+
+	// Setup print
+	Print_SetTextFont(g_Font_MGL_Sample8, 0);
+	Print_SetColor(0xF, 0x4);
+	VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (0*256*8), 32*4*8);
+	VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (1*256*8), 32*4*8);
+	VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (2*256*8), 32*4*8);
+
+	Print_DrawTextAt(0, 0, "\x2\x3\x4\x5 Sprite FX sample (16x16)");
+	Print_DrawCharXAt(0, 1, '\x17', 32);
+
+	Print_DrawTextAt(1, 4, "Crop R/L");
+	Print_DrawTextAt(15, 3, "\x9F\x9F");
+	Print_DrawTextAt(15, 4, "\x9F\x9F");
+	Print_DrawTextAt(15, 5, "\x9F\x9F");
+	Print_DrawCharXAt(0, 6, '\x9F', 32);
+
+	Print_DrawTextAt(1, 10, "Flip H");
+	Print_DrawCharXAt(0, 12, '\x9F', 32);
+
+	Print_DrawTextAt(1, 16, "Mask");
+	Print_DrawCharXAt(0, 18, '\x9F', 32);
+
+	Print_DrawTextAt(1, 22, "Rotate");
+
+	Print_DrawTextAt(31-7, 22, "\x82:Flip V");
+	Print_DrawTextAt(31-7, 23, "\x83:8x8");
+}
+
+//-----------------------------------------------------------------------------
+// Update 16x16
+void Update16()
+{
+	bool bToggle = Keyboard_IsKeyPressed(KEY_UP) || Keyboard_IsKeyPressed(KEY_DOWN);
+
+	u8 frame = (g_Frame >> 2) % 6;
+	u8 pat = (frame * 8 * 4);
+
+	// Crop right/left
+	g_PosX0++;
+	VDP_SetSpritePositionX(0, g_PosX0);
+	VDP_SetSpritePositionX(1, g_PosX0);
+	u8* pat1 = g_PatternData + pat;
+	u8* pat2 = g_PatternData + pat + 24 * 8;
+	if((g_PosX0 > 104) && (g_PosX0 <= 120))
+	{
+		u8 offset = g_PosX0 - 105;
+		SpriteFX_CropRight16(pat1, g_Buffer1, offset);
+		SpriteFX_CropRight16(pat2, g_Buffer2, offset);
+		pat1 = g_Buffer1;
+		pat2 = g_Buffer2;
+	}
+	else if((g_PosX0 >= 120) && (g_PosX0 < 136))
+	{
+		u8 offset = 15 - (g_PosX0 - 120);
+		SpriteFX_CropLeft16(pat1, g_Buffer1, offset);
+		SpriteFX_CropLeft16(pat2, g_Buffer2, offset);
+		pat1 = g_Buffer1;
+		pat2 = g_Buffer2;
+	}
+	if(bToggle)
+	{
+		SpriteFX_FlipVertical16(pat1, g_Buffer3);
+		SpriteFX_FlipVertical16(pat2, g_Buffer4);
+		pat1 = g_Buffer3;
+		pat2 = g_Buffer4;
+	}
+	VDP_LoadSpritePattern(pat1, 0, 4);
+	VDP_LoadSpritePattern(pat2, 4, 4);
+
+	// Flip horizontal
+	g_PosX1--;
+	VDP_SetSpritePositionX(2, g_PosX1);
+	VDP_SetSpritePositionX(3, g_PosX1);
+	pat1 = g_PatternData + pat;
+	pat2 = g_PatternData + pat + 24 * 8;
+	if(bToggle)
+	{
+		SpriteFX_Rotate180_16(pat1, g_Buffer1);
+		SpriteFX_Rotate180_16(pat2, g_Buffer2);
+	}
+	else
+	{
+		SpriteFX_FlipHorizontal16(pat1, g_Buffer1);
+		SpriteFX_FlipHorizontal16(pat2, g_Buffer2);
+	}
+	VDP_LoadSpritePattern(g_Buffer1, 8, 4);
+	VDP_LoadSpritePattern(g_Buffer2, 12, 4);
+
+	// Mask
+	VDP_SetSpritePositionX(4, g_PosX0);
+	VDP_SetSpritePositionX(5, g_PosX0);
+	frame = (g_Frame >> 3) % 10;
+	if(g_MaskAnim[frame] == 0)
+	{
+		VDP_FillSpritePattern(0, 16, 4);
+		VDP_FillSpritePattern(0, 20, 4);
+	}
+	else
+	{
+		pat1 = g_PatternData + pat;
+		pat2 = g_PatternData + pat + 24 * 8;
+
+		if(g_MaskAnim[frame] != (u8*)1)
+		{
+			SpriteFX_Mask16(pat1, g_Buffer1, g_MaskAnim[frame]);
+			SpriteFX_Mask16(pat2, g_Buffer2, g_MaskAnim[frame]);
+			pat1 = g_Buffer1;
+			pat2 = g_Buffer2;
+		}
+		if(bToggle)
+		{
+			SpriteFX_FlipVertical16(pat1, g_Buffer3);
+			SpriteFX_FlipVertical16(pat2, g_Buffer4);
+			pat1 = g_Buffer3;
+			pat2 = g_Buffer4;
+		}
+		VDP_LoadSpritePattern(pat1, 16, 4);
+		VDP_LoadSpritePattern(pat2, 20, 4);
+	}
+
+	// Rotate 90°
+	u8 rot = (g_Frame >> 4) % 4;
+	VDP_LoadSpritePattern(g_RotAnim[rot] + pat, 24, 4);
+	VDP_LoadSpritePattern(g_RotAnim[rot] + pat + (24 * 8), 28, 4);
+
+	if(Keyboard_IsKeyPressed(KEY_SPACE))
+		FSM_SetState(&g_State8);
+}
+
+//-----------------------------------------------------------------------------
+//
+void SetFX(u8 id)
+{
+	g_FXIndex = id;
+	Print_DrawCharXAt(0, 3, '\0', 32);
+	Print_DrawTextAt(0, 3, "Effect: ");
+	Print_DrawText(g_Effect[g_FXIndex].Name);
+}
+
+//-----------------------------------------------------------------------------
+//
+void Init8()
+{
+	// Setup screen
+	VDP_SetMode(VDP_MODE_SCREEN4);
+	VDP_SetColor(COLOR_DARK_BLUE);
+	VDP_ClearVRAM();
+	
+	// Setup sprite
+	VDP_EnableSprite(TRUE);
+	VDP_SetSpriteFlag(VDP_SPRITE_SIZE_8);
+
+	// Loading sprite data
+	VDP_LoadSpritePattern(g_Font_MGL_Symbol1 + 4 + (16 * 10 * 8), 0, 32);
+
+	// Initialize sprite attribute
+	loop(i, SPRITE_8_NUM)
+	{
+		VectorU8* vec = &g_SpritePos[i];
+		vec->x = Math_GetRandom8();
+		vec->y = 32 + (Math_GetRandom8() % 128);
+		VDP_SetSpriteExUniColor(i, vec->x, vec->y, i, 7 + (i % 8));
+	}
+
+	// Setup print
+	Print_SetTextFont(g_Font_MGL_Sample8, 0);
+	Print_SetColor(0xF, 0x4);
+	VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (0*256*8), 32*4*8);
+	VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (1*256*8), 32*4*8);
+	VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (2*256*8), 32*4*8);
+
+	Print_DrawTextAt(0, 0, "\x2\x3\x4\x5 Sprite FX sample (8x8)");
+	Print_DrawCharXAt(0, 1, '\x17', 32);
+
+	Print_DrawTextAt(31-7, 20, "\x8D:FX");
+	Print_DrawTextAt(31-7, 21, "\x8E:None");
+	Print_DrawTextAt(31-7, 22, "\x8F:Stop");
+	Print_DrawTextAt(31-7, 23, "\x83:16x16");
+
+	SetFX(0);
+}
+
+//-----------------------------------------------------------------------------
+//
+void Update8()
+{
+	bool bDefault = Keyboard_IsKeyPressed(KEY_UP);
+	bool bStop = Keyboard_IsKeyPressed(KEY_DOWN);
+
+	// Initialize sprite attribute
+	const u8* pat = g_Font_MGL_Symbol1 + 4 + (16 * 10 * 8);
+	u16 vram = g_SpritePatternLow;
+	loop(i, SPRITE_8_NUM)
+	{
+		if(!bStop && (g_Frame & 0x03) == 0)
+		{
+			VectorU8* vec = &g_SpritePos[i];
+			switch(i % 8)
+			{
+			case 0: vec->x++; vec->y++; break;
+			case 1:	vec->x++; break;
+			case 2: vec->x++; vec->y--; break;
+			case 3: vec->y--; break;
+			case 4: vec->x--; vec->y--; break;
+			case 5: vec->x--; break;
+			case 6: vec->x--; vec->y++; break;
+			case 7: vec->y++; break;
+			}
+			if(vec->y < 32)
+				vec->y += 128;
+			if(vec->y > 128+32)
+				vec->y -= 128;
+			VDP_SetSpritePosition(i, vec->x, vec->y);			
+		}
+			
+		const EffectInfo* fx = &g_Effect[g_FXIndex];
+		const u8* ptr = pat;
+		if(!bDefault && fx->Func)
+		{
+			fx->Func(pat, g_Buffer1);
+			ptr = g_Buffer1;
+		}
+		VDP_WriteVRAM(ptr, vram, g_SpritePatternHigh, 8);
+		pat += 8;
+		vram += 8;
+	}
+
+	if(Keyboard_IsKeyPressed(KEY_RIGHT))
+	{
+		SetFX((g_FXIndex + 1) % numberof(g_Effect));
+		while(Keyboard_IsKeyPressed(KEY_RIGHT)) {}
+	}
+	else if(Keyboard_IsKeyPressed(KEY_LEFT))
+	{
+		SetFX((g_FXIndex + numberof(g_Effect) - 1) % numberof(g_Effect));
+		while(Keyboard_IsKeyPressed(KEY_LEFT)) {}
+	}
+
+	if(Keyboard_IsKeyPressed(KEY_SPACE))
+		FSM_SetState(&g_State16);
 }
 
 //=============================================================================
@@ -129,153 +708,30 @@ void VDP_HBlankHandler()
 // Program entry point
 void main()
 {
+	// Setup system
 	Bios_SetKeyClick(FALSE);
+	Bios_SetHookCallback(H_TIMI, VBlankHook);
 
-	// Initialize video
-	VDP_SetMode(VDP_MODE_GRAPHIC3_MIRROR); // Screen mode 4 (G3) with mirrored pattern/color table
-	VDP_SetLineCount(VDP_LINE_212);
-	VDP_SetColor(0xF5);
-	VDP_ClearVRAM();
+	FSM_SetState(&g_State16);
 
-	// Generate tiles data
-	//-- Bank 0
-	u16 bankAddr = 0;
-	VDP_WriteVRAM_16K(g_Font_MGL_Sample8 + 4 + 8 * 10,  g_ScreenPatternLow + 8 + bankAddr, 8);
-	VDP_FillVRAM_16K(0x3C, g_ScreenColorLow + bankAddr, 256 * 8);
-	//-- Bank 1
-	bankAddr += 256 * 8;
-	VDP_WriteVRAM_16K(g_Font_MGL_Sample8 + 4 + 8 * 185, g_ScreenPatternLow + 8 + bankAddr, 8);
-	VDP_FillVRAM_16K(0x74, g_ScreenColorLow + bankAddr, 256 * 8);
-	//-- Bank 2
-	bankAddr += 256 * 8;
-	VDP_WriteVRAM_16K(g_Font_MGL_Sample8 + 4 + 8 * 156, g_ScreenPatternLow + 8 + bankAddr, 8);
-	VDP_FillVRAM_16K(0x96, g_ScreenColorLow + bankAddr, 256 * 8);
-	// Generate layout
-	u16 addr = g_ScreenLayoutLow;
-	for(u16 i = 0; i < 1024; ++i)
+	bool bContinue = TRUE;
+	while(bContinue)
 	{
-		if((i >= 32 * 3) && !(i & 0x20))
-			VDP_Poke_16K(i & 0x01, addr);
-		addr++;
-	}
-
-	// Initialize text
-	g_PrintData.PatternOffset = 32;
-	Print_SetFontEx(8, 8, 1, 1, 32, 127, g_Font_MGL_Sample8 + 32 * 8 + 4);
-	Print_Initialize();
-	Print_SetMode(PRINT_MODE_TEXT);
-	VDP_WriteVRAM(g_PrintData.FontPatterns, g_ScreenPatternLow + (32 * 8), 0, g_PrintData.CharCount * 8); // Load data to VRAM
-	// Print header
-	Print_DrawTextAt(0, 0, "MSXgl - GM3 Sample");
-	Print_DrawTextAt(0, 1, " [1]:Mirror 0    [2]:Mirror 01");
-	Print_DrawTextAt(0, 2, " [3]:Mirror 02   [4]:No mirror");
-
-	// Initialize sprite
-	u8 X = 100, Y = 100;
-	VDP_EnableSprite(TRUE);
-	VDP_SetSpriteFlag(VDP_SPRITE_SIZE_16);
-	VDP_LoadSpritePattern(g_DataSprtBall, 0, 4);
-	VDP_LoadSpritePattern(g_DataSprtLayer, 8*4, 13*4*4);
-
-	loop(s, 2)
-	{
-		g_SpriteAtributeLow = g_SATAddr[s];
-		g_SpriteAtributeHigh = 0;
-		g_SpriteColorLow = g_SpriteAtributeLow - 0x200;
-		g_SpriteColorHigh = 0;
-
-		VDP_SetSpriteExUniColor(0, X, Y, 32, COLOR_BLACK);
-		VDP_SetSpriteExUniColor(1, X, Y, 36, COLOR_WHITE);
-		VDP_SetSpriteExUniColor(2, X, Y, 40, COLOR_LIGHT_RED);
-
-		for(u8 i = 3; i < 32; ++i)
-		{
-			u8 idx = i - 3 + (s * 29);
-			struct VDP_Sprite* sprt = &g_SpriteData[idx];
-			sprt->X = Math_GetRandom8();
-			sprt->Y = (106 - 16) * (i - 3) / 29 /*Math_GetRandom8() % (106 - 16)*/ + (s * 106);
-			sprt->Pattern = 0;
-			sprt->Color = g_BallColor[Math_GetRandom8() % 8];
-			VDP_SetSpriteExUniColor(i, sprt->X, sprt->Y, sprt->Pattern, sprt->Color);
-		}
-	}
-
-	// Interruption
-	VDP_EnableVBlank(TRUE);
-	VDP_EnableHBlank(TRUE);
-
-	u8 shape = 6;
-	u8 prevRow8 = 0xFF;
-	while(1)
-	{
-		// Wait for v-synch
+		// VDP_SetColor(COLOR_DARK_BLUE);
 		WaitVBlank();
-		VDP_SetHBlankLine(SPLIT_LINE + g_Frame);
-		VDP_SetVerticalOffset(g_Frame);
+		// VDP_SetColor(COLOR_LIGHT_BLUE);
 
-		loop(s, 2)
-		{
-			// Update SAT address
-			g_SpriteAtributeLow = g_SATAddr[s];
-			g_SpriteAtributeHigh = 0;
-			g_SpriteColorLow = g_SpriteAtributeLow - 0x200;
-			g_SpriteColorHigh = 0;
+		FSM_Update();
 
-			// Update player sprites
-			u8 y = Y + g_Frame;
-			if(y == 216)
-				y++;
-			VDP_SetSprite(0, X, y, 32 + shape * 16);
-			VDP_SetSprite(1, X, y, 36 + shape * 16);
-			VDP_SetSprite(2, X, y, 40 + shape * 16);
+		// Sign-of-life	
+		Print_DrawCharAt(31, 0, g_CharAnim[g_Frame & 0x03]);
 
-			// Update balloon sprites
-			for(u8 i = 3; i < 32; ++i)
-			{
-				u8 idx = i - 3;
-				if(s)
-					idx += 29;
-				struct VDP_Sprite* sprt = &g_SpriteData[idx];
-				u8 y = sprt->Y + g_Frame;
-				if(y == 216)
-					y++;
-				VDP_SetSpritePositionY(i, y);
-			}
-		}
-
-		u8 row0 = Keyboard_Read(0);
-		if(IS_KEY_PRESSED(row0, KEY_1))
-			VDP_SetMode(VDP_MODE_GRAPHIC3_MIRROR_0);
-		if(IS_KEY_PRESSED(row0, KEY_2))
-			VDP_SetMode(VDP_MODE_GRAPHIC3_MIRROR_01);
-		if(IS_KEY_PRESSED(row0, KEY_3))
-			VDP_SetMode(VDP_MODE_GRAPHIC3_MIRROR_02);
-		if(IS_KEY_PRESSED(row0, KEY_4))
-			VDP_SetMode(VDP_MODE_GRAPHIC3);
-
-		shape = 6;
-		u8 row8 = Keyboard_Read(8);
-		// Update horizontal scrolling offset
-		if(IS_KEY_PRESSED(row8, KEY_RIGHT))
-		{
-			X++;
-			shape = (g_Frame >> 2) % 6;
-		}
-		else if(IS_KEY_PRESSED(row8, KEY_LEFT))
-		{
-			X--;
-			shape = (g_Frame >> 2) % 6;
-		}
-		if(IS_KEY_PRESSED(row8, KEY_DOWN))
-		{
-			Y++;
-			shape = (g_Frame >> 2) % 6;
-		}
-		else if(IS_KEY_PRESSED(row8, KEY_UP))
-		{
-			Y--;
-			shape = (g_Frame >> 2) % 6;
-		}
-		prevRow8 = row8;
+		if(Keyboard_IsKeyPressed(KEY_ESC))
+			bContinue = FALSE;
 	}
+
+	Bios_ClearHook(H_TIMI);
+	Bios_Exit(0);
 }
+
+

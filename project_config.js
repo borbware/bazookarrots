@@ -73,7 +73,7 @@ Machine = "2";
 //   - ROM_KONAMI_SCC   .rom    Konami MegaROM SCC (aka Konami5): 8 KB segments for a total of 64 KB to 2 MB
 //   - ROM_NEO8         .rom    NEO-8: 8 KB segments for a total of 1 MB to 32 MB
 //   - ROM_NEO16        .rom    NEO-16: 16 KB segments for a total of 1 MB to 64 MB
-Target = "ROM_32K";
+Target = "ROM_48K_ISR";
 
 //-- ROM mapper total size in KB (number). Must be a multiple of 8 or 16 depending on the mapper type (from 64 to 4096)
 // ROMSize = 128;
@@ -92,7 +92,7 @@ AddROMSignature = true;
 //   - VBLANK     V-blank handler
 //   - VHBLANK    V-blank and h-blank handler (V9938 or V9958)
 //   - V9990      V-blank, h-blank and command end handler (V9990)
-// CustomISR = "VBLANK";
+CustomISR = "VBLANK";
 
 //-- Use automatic banked call and trampoline functions (boolean). For mapped ROM
 // BankedCall = 0;

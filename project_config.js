@@ -31,7 +31,7 @@ ProjModules = [ ProjName ];
 // ProjSegments = "";
 
 //-- List of library modules to build (array)
-LibModules = ["system", "bios", "vdp", "print", "input", "memory" ];
+LibModules = ["system", "bios", "vdp", "print", "input", "memory", "math", "draw"];
 
 //-- Additional sources to be compiled and linked with the project (array)
 // AddSources = [];
@@ -139,7 +139,7 @@ AppID = "EX";
 // Debug = false;
 
 //-- Move debug symbols to deployement folder (boolean)
-// DebugSymbols = false;
+// DebugSymbols = true;
 
 //-- Allow compiler to generate undocumented Z80 instructions (boolean)
 // AllowUndocumented = false;
@@ -162,7 +162,7 @@ AppID = "EX";
 //   - Optimized	   50000
 //   - Ultra		  200000
 //   - Insane		10000000
-CompileComplexity = "Default";
+// CompileComplexity = "Default";
 
 //-- Additionnal compilation options (string)
 // CompileOpt = "";

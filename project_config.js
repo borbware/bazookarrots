@@ -92,7 +92,7 @@ AddROMSignature = true;
 //   - VBLANK     V-blank handler
 //   - VHBLANK    V-blank and h-blank handler (V9938 or V9958)
 //   - V9990      V-blank, h-blank and command end handler (V9990)
-CustomISR = "VBLANK";
+CustomISR = "VHBLANK";
 
 //-- Use automatic banked call and trampoline functions (boolean). For mapped ROM
 // BankedCall = 0;

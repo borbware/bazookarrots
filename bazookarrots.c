@@ -51,6 +51,7 @@ typedef struct
 } Rabbit;
 
 #define BULLET_SIZE 16
+#define BULLET_SPEED 2;
 typedef struct 
 {
 	u8 state; // 0 = Inactive, 1 = Moving
@@ -65,6 +66,7 @@ typedef struct
 typedef struct 
 {
 	u8 state; // 0 = Inactive, 1 = Moving
+	u8 dir; // 0 = Up, clockwise, 8 directions
     VectorI16 vel; // Direction and speed
 	VectorI16 pos;
 	u8 carrots;
@@ -87,6 +89,7 @@ void InitGameData();
 void UpdateGame();
 bool CheckBoxCollision(VectorI16* posA, VectorI16* posB, u8 sizeA, u8 sizeB);
 bool InInBounds(VectorI16* pos, u8 size);
+void CheckShootInputAndMaybeShoot();
 
 //=============================================================================
 // READ-ONLY DATA
@@ -189,47 +192,64 @@ void UpdateGame()
 	{
 		player.pos.y -= PLAYER_SPEED_DIAGONAL;
 		player.pos.x += PLAYER_SPEED_DIAGONAL;
+		player.dir = 1;
 		player.flipHorizontal = false;
+		CheckShootInputAndMaybeShoot();
 	}
 	else if(Keyboard_IsKeyPressed(KEY_UP) && Keyboard_IsKeyPressed(KEY_LEFT))
 	{
 		player.pos.y -= PLAYER_SPEED_DIAGONAL;
 		player.pos.x -= PLAYER_SPEED_DIAGONAL;
+		player.dir = 7;
 		player.flipHorizontal = true;
+		CheckShootInputAndMaybeShoot();
 	}
 	else if(Keyboard_IsKeyPressed(KEY_DOWN) && Keyboard_IsKeyPressed(KEY_RIGHT))
 	{
 		player.pos.y += PLAYER_SPEED_DIAGONAL;
 		player.pos.x += PLAYER_SPEED_DIAGONAL;
+		player.dir = 3;
 		player.flipHorizontal = false;
+		CheckShootInputAndMaybeShoot();
 	}
 	else if(Keyboard_IsKeyPressed(KEY_DOWN) && Keyboard_IsKeyPressed(KEY_LEFT))
 	{
 		player.pos.y += PLAYER_SPEED_DIAGONAL;
 		player.pos.x -= PLAYER_SPEED_DIAGONAL;
+		player.dir = 5;
 		player.flipHorizontal = true;
+		CheckShootInputAndMaybeShoot();
 	}
 	else if(Keyboard_IsKeyPressed(KEY_UP))
 	{
 		player.pos.y -= PLAYER_SPEED;
+		player.dir = 0;
+		CheckShootInputAndMaybeShoot();
 	}
 	else if(Keyboard_IsKeyPressed(KEY_DOWN))
 	{
 		player.pos.y += PLAYER_SPEED;
+		player.dir = 4;
+		CheckShootInputAndMaybeShoot();
 	}
 	else if(Keyboard_IsKeyPressed(KEY_RIGHT))
 	{
 		player.pos.x += PLAYER_SPEED;
 		player.flipHorizontal = false;
+		player.dir = 2;
+		CheckShootInputAndMaybeShoot();
 	}
 	else if(Keyboard_IsKeyPressed(KEY_LEFT))
 	{
+		player.dir = 6;
 		player.pos.x -= PLAYER_SPEED;
 		player.flipHorizontal = true;
+		CheckShootInputAndMaybeShoot();
 	}
 	else
 	{
 		// TODO: Stop player walk
+		CheckShootInputAndMaybeShoot();
 	}
 
 	for(i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
@@ -345,6 +365,62 @@ bool InInBounds(VectorI16* pos, u8 size)
 	&& pos->x < 256
 	&& pos->y < 211
 	&& pos->y > 0 - size);
+}
+
+void CheckShootInputAndMaybeShoot()
+{
+	if(Keyboard_IsKeyPressed(KEY_SPACE))
+	{
+		for(i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
+		{
+			if(bullets[i].state == 0)
+			{
+				bullets[i].state = 1;
+				if(player.dir == 0)
+				{
+					bullets[i].vel.x = 0;
+					bullets[i].vel.y = -BULLET_SPEED;
+				}
+				else if(player.dir == 1)
+				{
+					bullets[i].vel.x = BULLET_SPEED;
+					bullets[i].vel.y = -BULLET_SPEED;
+				}
+				else if(player.dir == 2)
+				{
+					bullets[i].vel.x = BULLET_SPEED;
+					bullets[i].vel.y = 0;
+				}
+				else if(player.dir == 3)
+				{
+					bullets[i].vel.x = BULLET_SPEED;
+					bullets[i].vel.y = BULLET_SPEED;
+				}
+				else if(player.dir == 4)
+				{
+					bullets[i].vel.x = 0;
+					bullets[i].vel.y = -BULLET_SPEED;
+				}
+				else if(player.dir == 5)
+				{
+					bullets[i].vel.x = -BULLET_SPEED;
+					bullets[i].vel.y = -BULLET_SPEED;
+				}
+				else if(player.dir == 6)
+				{
+					bullets[i].vel.x = -BULLET_SPEED;
+					bullets[i].vel.y = 0;
+				}
+				else if(player.dir == 7)
+				{
+					bullets[i].vel.x = -BULLET_SPEED;
+					bullets[i].vel.y = BULLET_SPEED;
+				}
+
+				break;
+			}
+		}
+	}
 }
 
 //=============================================================================

@@ -43,7 +43,6 @@ void DoCropLeft8(const u8* src, u8* dest);
 void DoCropRight8(const u8* src, u8* dest);
 void DoCropTop8(const u8* src, u8* dest);
 void DoCropBottom8(const u8* src, u8* dest);
-void DoMask8(const u8* src, u8* dest);
 void SpriteFX_FlipVertical8(const u8* src, u8* dest);
 void SpriteFX_FlipHorizontal8(const u8* src, u8* dest);
 void SpriteFX_RotateRight8(const u8* src, u8* dest);
@@ -64,246 +63,6 @@ void SpriteFX_RotateHalfTurn8(const u8* src, u8* dest);
 // Character animation
 const u8 g_CharAnim[] = { '|', '\\', '-', '/' };
 
-// 
-const u8 g_Mask1[32] = 
-{
-	0b00000111, 
-	0b00011111, 
-	0b00111111, 
-	0b01111111, 
-	0b01111111, 
-	0b11111111, 
-	0b11111111, 
-	0b11111111, 
-	0b11111111, 
-	0b11111111, 
-	0b11111111, 
-	0b01111111, 
-	0b01111111, 
-	0b00111111, 
-	0b00011111, 
-	0b00000111, 
-
-	0b11100000,
-	0b11111000,
-	0b11111100,
-	0b11111110,
-	0b11111110,
-	0b11111111,
-	0b11111111,
-	0b11111111,
-	0b11111111,
-	0b11111111,
-	0b11111111,
-	0b11111110,
-	0b11111110,
-	0b11111100,
-	0b11111000,
-	0b11100000,
-};
-
-// 
-const u8 g_Mask2[32] = 
-{
-	0b00000000,
-	0b00000000,
-	0b00000011,
-	0b00001111,
-	0b00011111,
-	0b00011111,
-	0b00111111,
-	0b00111111,
-	0b00111111,
-	0b00111111,
-	0b00011111,
-	0b00011111,
-	0b00001111,
-	0b00000011,
-	0b00000000,
-	0b00000000,
-
-	0b00000000,
-	0b00000000,
-	0b11000000,
-	0b11110000,
-	0b11111000,
-	0b11111000,
-	0b11111100,
-	0b11111100,
-	0b11111100,
-	0b11111100,
-	0b11111000,
-	0b11111000,
-	0b11110000,
-	0b11000000,
-	0b00000000,
-	0b00000000,
-};
-
-// 
-const u8 g_Mask3[32] = 
-{
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000011,
-	0b00000111,
-	0b00001111,
-	0b00001111,
-	0b00001111,
-	0b00001111,
-	0b00000111,
-	0b00000011,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b11000000,
-	0b11100000,
-	0b11110000,
-	0b11110000,
-	0b11110000,
-	0b11110000,
-	0b11100000,
-	0b11000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-};
-
-// 
-const u8 g_Mask4[32] = 
-{
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000001,
-	0b00000011,
-	0b00000011,
-	0b00000001,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b10000000,
-	0b11000000,
-	0b11000000,
-	0b10000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-};
-
-//
-const u8 g_Mask8[8][8] =
-{
-	{
-		0b11111111,
-		0b11111111,
-		0b11111111,
-		0b11111111,
-		0b11111111,
-		0b11111111,
-		0b11111111,
-		0b11111111,
-	},
-	{
-		0b11111111,
-		0b11111111,
-		0b11111111,
-		0b11101111,
-		0b11111111,
-		0b11111111,
-		0b11111111,
-		0b11111111,
-	},
-	{
-		0b11111111,
-		0b11111111,
-		0b11111111,
-		0b11100111,
-		0b11100111,
-		0b11111111,
-		0b11111111,
-		0b11111111,
-	},
-	{
-		0b11111111,
-		0b11111111,
-		0b11100111,
-		0b11000011,
-		0b11000011,
-		0b11100111,
-		0b11111111,
-		0b11111111,
-	},
-	{
-		0b11111111,
-		0b11100111,
-		0b11000011,
-		0b10000001,
-		0b10000001,
-		0b11000011,
-		0b11100111,
-		0b11111111,
-	},
-	{
-		0b11111111,
-		0b11000011,
-		0b10000001,
-		0b10000001,
-		0b10000001,
-		0b10000001,
-		0b11100111,
-		0b11111111,
-	},
-	{
-		0b11000011,
-		0b10000001,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b10000001,
-		0b11000011,
-	},
-	{
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-	},
-};
-
-//
-const u8* g_MaskAnim[] = { 1, g_Mask1, g_Mask2, g_Mask3, g_Mask4, 0, g_Mask4, g_Mask3, g_Mask2, g_Mask1 };
-
 //
 const u8* g_RotAnim[] = { g_PatternData, g_PatternDataRotLeft, g_PatternDataRotHalf, g_PatternDataRotRight };
 
@@ -319,7 +78,6 @@ const EffectInfo g_Effect[] =
 	{ "Crop Right",      DoCropRight8 },
 	{ "Crop Top",        DoCropTop8 },
 	{ "Crop Bottom",     DoCropBottom8 },
-	{ "Mask",            DoMask8 },
 	{ "Flip Vertical",   SpriteFX_FlipVertical8 },
 	{ "Flip Horizontal", SpriteFX_FlipHorizontal8 },
 	{ "Rotate Right",    SpriteFX_RotateRight8 },
@@ -400,9 +158,6 @@ void DoCropTop8(const u8* src, u8* dest) { SpriteFX_CropTop8(src, dest, (g_Frame
 //
 void DoCropBottom8(const u8* src, u8* dest) { SpriteFX_CropBottom8(src, dest, (g_Frame >> 3) % 8); }
 
-//-----------------------------------------------------------------------------
-//
-void DoMask8(const u8* src, u8* dest) { SpriteFX_Mask8(src, dest, g_Mask8[(g_Frame >> 3) % 8]); }
 
 //-----------------------------------------------------------------------------
 // Initialize 16x16
@@ -545,38 +300,6 @@ void Update16()
 	}
 	VDP_LoadSpritePattern(g_Buffer1, 8, 4);
 	VDP_LoadSpritePattern(g_Buffer2, 12, 4);
-
-	// Mask
-	VDP_SetSpritePositionX(4, g_PosX0);
-	VDP_SetSpritePositionX(5, g_PosX0);
-	frame = (g_Frame >> 3) % 10;
-	if(g_MaskAnim[frame] == 0)
-	{
-		VDP_FillSpritePattern(0, 16, 4);
-		VDP_FillSpritePattern(0, 20, 4);
-	}
-	else
-	{
-		pat1 = g_PatternData + pat;
-		pat2 = g_PatternData + pat + 24 * 8;
-
-		if(g_MaskAnim[frame] != (u8*)1)
-		{
-			SpriteFX_Mask16(pat1, g_Buffer1, g_MaskAnim[frame]);
-			SpriteFX_Mask16(pat2, g_Buffer2, g_MaskAnim[frame]);
-			pat1 = g_Buffer1;
-			pat2 = g_Buffer2;
-		}
-		if(bToggle)
-		{
-			SpriteFX_FlipVertical16(pat1, g_Buffer3);
-			SpriteFX_FlipVertical16(pat2, g_Buffer4);
-			pat1 = g_Buffer3;
-			pat2 = g_Buffer4;
-		}
-		VDP_LoadSpritePattern(pat1, 16, 4);
-		VDP_LoadSpritePattern(pat2, 20, 4);
-	}
 
 	// Rotate 90°
 	u8 rot = (g_Frame >> 4) % 4;

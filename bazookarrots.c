@@ -87,6 +87,10 @@ void Update16();
 
 void InitGameData();
 void UpdateGame();
+
+void InitGameOver();
+void UpdateGameOver();
+
 bool CheckBoxCollision(VectorI16* posA, VectorI16* posB, u8 sizeA, u8 sizeB);
 bool InInBounds(VectorI16* pos, u8 size);
 void CheckShootInputAndMaybeShoot();
@@ -110,6 +114,10 @@ const u8* g_RotAnim[] = { g_PatternData, g_PatternDataRotLeft, g_PatternDataRotH
 // states
 const FSM_State g_State16 = { 0, Init16, Update16, NULL };
 const FSM_State g_StateGame = {1, InitGameData, UpdateGame, NULL};
+const FSM_State g_GameOver = {2, InitGameOver, UpdateGameOver, NULL};
+
+u16 timeLeft = 60;
+u16 t = 0;
 
 //=============================================================================
 // MEMORY DATA
@@ -421,6 +429,19 @@ void CheckShootInputAndMaybeShoot()
 	}
 }
 
+// Game over
+
+void InitGameOver()
+{
+	Print_DrawTextAt(4, 4, "GAME OVER");
+}
+
+void UpdateGameOver()
+{
+
+}
+
+
 //=============================================================================
 // HELPER FUNCTIONS
 //=============================================================================
@@ -499,7 +520,6 @@ void Init16()
 	// VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (1*256*8), 32*4*8);
 	// VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (2*256*8), 32*4*8);
 
-	Print_DrawTextAt(1, 1, "TIME");
 }
 
 //-----------------------------------------------------------------------------
@@ -509,8 +529,6 @@ void Update16()
 
 	u8 frame = (g_Frame >> 2) % 6;
 	u8 pat = (frame * 8 * 4);
-
-	// Crop right/left
 	u8* pat1 = g_PatternData + pat;
 	u8* pat2 = g_PatternData + pat + 24 * 8;
 
@@ -549,6 +567,10 @@ void Update16()
 		}
 	}
 
+	// Draw UI
+	Print_DrawTextAt(1, 1, "TIME");
+	Print_DrawIntAt(8, 1, timeLeft);
+
 
 	// if(Keyboard_IsKeyPressed(KEY_SPACE))
 	// 	FSM_SetState(&g_State8);
@@ -578,6 +600,13 @@ void main()
 
 		if(Keyboard_IsKeyPressed(KEY_ESC))
 			bContinue = FALSE;
+		t += 1;
+		if (t % 60 == 0)
+			timeLeft -= 1;
+
+		if (t == 0)
+			FSM_SetState(&g_GameOver);
+		
 	}
 
 	Bios_ClearHook(H_TIMI);

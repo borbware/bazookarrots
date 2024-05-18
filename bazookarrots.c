@@ -68,6 +68,7 @@ typedef struct
     VectorI16 vel; // Direction and speed
 	VectorI16 pos;
 	u8 carrots;
+	bool flipHorizontal;
 } Player;
 
 // Game data
@@ -195,10 +196,12 @@ void UpdateGame()
 	}
 	else if(Keyboard_IsKeyPressed(KEY_RIGHT))
 	{
+		player.flipHorizontal = false;
 		player.pos.y += PLAYER_SPEED;
 	}
 	else if(Keyboard_IsKeyPressed(KEY_LEFT))
 	{
+		player.flipHorizontal = true;
 		player.pos.y += PLAYER_SPEED;
 	}
 
@@ -442,57 +445,27 @@ void Update16()
 	u8 pat = (frame * 8 * 4);
 
 	// Crop right/left
-	g_PosX0++;
-	VDP_SetSpritePositionX(0, g_PosX0);
-	VDP_SetSpritePositionX(1, g_PosX0);
 	u8* pat1 = g_PatternData + pat;
 	u8* pat2 = g_PatternData + pat + 24 * 8;
-	if((g_PosX0 > 104) && (g_PosX0 <= 120))
-	{
-		u8 offset = g_PosX0 - 105;
-		SpriteFX_CropRight16(pat1, g_Buffer1, offset);
-		SpriteFX_CropRight16(pat2, g_Buffer2, offset);
-		pat1 = g_Buffer1;
-		pat2 = g_Buffer2;
-	}
-	else if((g_PosX0 >= 120) && (g_PosX0 < 136))
-	{
-		u8 offset = 15 - (g_PosX0 - 120);
-		SpriteFX_CropLeft16(pat1, g_Buffer1, offset);
-		SpriteFX_CropLeft16(pat2, g_Buffer2, offset);
-		pat1 = g_Buffer1;
-		pat2 = g_Buffer2;
-	}
-	if(bToggle)
-	{
-		SpriteFX_FlipVertical16(pat1, g_Buffer3);
-		SpriteFX_FlipVertical16(pat2, g_Buffer4);
-		pat1 = g_Buffer3;
-		pat2 = g_Buffer4;
-	}
-	VDP_LoadSpritePattern(pat1, 0, 4);
-	VDP_LoadSpritePattern(pat2, 4, 4);
 
 	// Flip horizontal
-	g_PosX1--;
 	VDP_SetSpritePositionX(2, player.pos.x);
 	VDP_SetSpritePositionY(2, player.pos.y);
 	VDP_SetSpritePositionX(3, player.pos.x);
 	VDP_SetSpritePositionY(3, player.pos.y);
 	pat1 = g_PatternData + pat;
 	pat2 = g_PatternData + pat + 24 * 8;
-	if(bToggle)
-	{
-		SpriteFX_Rotate180_16(pat1, g_Buffer1);
-		SpriteFX_Rotate180_16(pat2, g_Buffer2);
-	}
-	else
+	if(player.flipHorizontal)
 	{
 		SpriteFX_FlipHorizontal16(pat1, g_Buffer1);
 		SpriteFX_FlipHorizontal16(pat2, g_Buffer2);
+		VDP_LoadSpritePattern(g_Buffer1, 8, 4);
+		VDP_LoadSpritePattern(g_Buffer2, 12, 4);
 	}
-	VDP_LoadSpritePattern(g_Buffer1, 8, 4);
-	VDP_LoadSpritePattern(g_Buffer2, 12, 4);
+	else {
+		VDP_LoadSpritePattern(pat1, 8, 4);
+		VDP_LoadSpritePattern(pat2, 12, 4);
+	}
 
 	// Rotate 90°
 	u8 rot = (g_Frame >> 4) % 4;

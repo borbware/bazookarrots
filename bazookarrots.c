@@ -84,8 +84,8 @@ Bullet bullets[MAX_CARROTS_IN_CARRY];
 Player player;
 
 // Function prototypes
-void Init16();
-void Update16();
+void InitDraw();
+void UpdateDraw();
 
 void InitGameData();
 void UpdateGame();
@@ -116,7 +116,6 @@ const u8 g_CharAnim[] = { '|', '\\', '-', '/' };
 const u8* g_RotAnim[] = { g_PatternData, g_PatternDataRotLeft, g_PatternDataRotHalf, g_PatternDataRotRight };
 
 // states
-const FSM_State g_State16 = { 0, Init16, Update16, NULL };
 const FSM_State g_StateGame = {1, InitGameData, UpdateGame, NULL};
 const FSM_State g_GameOver = {2, InitGameOver, UpdateGameOver, NULL};
 
@@ -160,7 +159,7 @@ u8 tempY;
 
 void InitGameData()
 {
-	Init16();
+	InitDraw();
 	for(i = 0; i < TARGET_COUNT; ++i)
 	{
 		targets[i].type = 0;
@@ -350,7 +349,7 @@ void UpdateGame()
 			rabbits[i].actionTimer--;
 		}
 	}
-	Update16();
+	UpdateDraw();
 
 	t += 1;
 	if (t % 60 == 0)
@@ -489,7 +488,7 @@ void WaitVBlank()
 }
 
 //-----------------------------------------------------------------------------
-void Init16()
+void InitDraw()
 {
 	// Setup screen
 	VDP_SetMode(VDP_MODE_SCREEN4);
@@ -557,7 +556,7 @@ void Init16()
 }
 
 //-----------------------------------------------------------------------------
-void Update16()
+void UpdateDraw()
 {
 	// DRAW PLAYER
 

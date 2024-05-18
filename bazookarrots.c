@@ -567,7 +567,23 @@ void InitDraw()
 
 	// Setup screen
 	VDP_SetMode(VDP_MODE_SCREEN5);
-	VDP_SetColor(COLOR_DARK_BLUE);
+	VDP_SetPaletteEntry(0, RGB16(0, 0, 0));
+	VDP_SetPaletteEntry(1, RGB16(0, 0, 0));
+	VDP_SetPaletteEntry(2, RGB16(7, 7, 7));
+	VDP_SetPaletteEntry(3, RGB16(6, 4, 1));
+	VDP_SetPaletteEntry(4, RGB16(0, 0, 1));
+	VDP_SetPaletteEntry(5, RGB16(0, 0, 2));
+	VDP_SetPaletteEntry(6, RGB16(0, 0, 3));
+	VDP_SetPaletteEntry(7, RGB16(0, 0, 4));
+	VDP_SetPaletteEntry(8, RGB16(0, 0, 5));
+	VDP_SetPaletteEntry(9, RGB16(0, 0, 6));
+	VDP_SetPaletteEntry(10, RGB16(0, 0, 7));
+	VDP_SetPaletteEntry(11, RGB16(0, 1, 7));
+	VDP_SetPaletteEntry(12, RGB16(0, 2, 7));
+	VDP_SetPaletteEntry(13, RGB16(0, 3, 7));
+	VDP_SetPaletteEntry(14, RGB16(0, 4, 7));
+	VDP_SetPaletteEntry(15, RGB16(0, 5, 7));
+	VDP_SetColor(9);
 	VDP_SetPage(0);
 
 	// Setup tilemap
@@ -578,8 +594,6 @@ void InitDraw()
 	Tile_FillBank(3, 9);
 	Tile_LoadBank(0, g_DataBG4b, sizeof(g_DataBG4b) / TILE_CELL_BYTES);
 	Tile_LoadBank(2, g_DataBG4b, sizeof(g_DataBG4b) / TILE_CELL_BYTES);
-	for(u8 i = 0; i < 15; ++i)
-		VDP_SetPaletteEntry(i + 1, *(u16*)&g_DataBG4b_palette[i*2]);
 
 	// Draw level
 	Tile_SetDrawPage(0);
@@ -608,8 +622,6 @@ void InitDraw()
 	RearrangeSprites(g_player, g_PlayerSpriteData, PLAYER_ANIMATION_FRAMES);
 
 	// Initialize 16x16 OR sprites
-	VDP_SetPaletteEntry(2, RGB16(7, 7, 7));
-	VDP_SetPaletteEntry(3, RGB16(6, 4, 1));
 	
 	// player
 	VDP_SetSpriteExUniColor(0, 0, 0, 0 * 4, 0x02);

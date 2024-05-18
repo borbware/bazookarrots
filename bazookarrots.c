@@ -88,7 +88,6 @@ void UpdateGame();
 bool CheckBoxCollision(VectorI16* posA, VectorI16* posB, u8 sizeA, u8 sizeB);
 bool InInBounds(VectorI16* pos, u8 size);
 
-
 //=============================================================================
 // READ-ONLY DATA
 //=============================================================================
@@ -186,44 +185,51 @@ void UpdateGame()
 	// Update bullets
 	// Update UI
 
-	if(Keyboard_IsKeyPressed(KEY_UP))
-	{
-		player.pos.y += PLAYER_SPEED;
-	}
-	else if(Keyboard_IsKeyPressed(KEY_DOWN))
-	{
-		player.pos.y -= PLAYER_SPEED;
-	}
-	else if(Keyboard_IsKeyPressed(KEY_RIGHT))
-	{
-		player.flipHorizontal = false;
-		player.pos.y += PLAYER_SPEED;
-	}
-	else if(Keyboard_IsKeyPressed(KEY_LEFT))
-	{
-		player.flipHorizontal = true;
-		player.pos.y += PLAYER_SPEED;
-	}
-
 	if(Keyboard_IsKeyPressed(KEY_UP) && Keyboard_IsKeyPressed(KEY_RIGHT))
 	{
-		player.pos.y += PLAYER_SPEED_DIAGONAL;
+		player.pos.y -= PLAYER_SPEED_DIAGONAL;
 		player.pos.x += PLAYER_SPEED_DIAGONAL;
+		player.flipHorizontal = false;
 	}
 	else if(Keyboard_IsKeyPressed(KEY_UP) && Keyboard_IsKeyPressed(KEY_LEFT))
 	{
-		player.pos.y += PLAYER_SPEED_DIAGONAL;
+		player.pos.y -= PLAYER_SPEED_DIAGONAL;
 		player.pos.x -= PLAYER_SPEED_DIAGONAL;
+		player.flipHorizontal = true;
 	}
 	else if(Keyboard_IsKeyPressed(KEY_DOWN) && Keyboard_IsKeyPressed(KEY_RIGHT))
 	{
-		player.pos.y -= PLAYER_SPEED_DIAGONAL;
-		player.pos.x -= PLAYER_SPEED_DIAGONAL;
+		player.pos.y += PLAYER_SPEED_DIAGONAL;
+		player.pos.x += PLAYER_SPEED_DIAGONAL;
+		player.flipHorizontal = false;
 	}
 	else if(Keyboard_IsKeyPressed(KEY_DOWN) && Keyboard_IsKeyPressed(KEY_LEFT))
 	{
-		player.pos.y -= PLAYER_SPEED_DIAGONAL;
+		player.pos.y += PLAYER_SPEED_DIAGONAL;
 		player.pos.x -= PLAYER_SPEED_DIAGONAL;
+		player.flipHorizontal = true;
+	}
+	else if(Keyboard_IsKeyPressed(KEY_UP))
+	{
+		player.pos.y -= PLAYER_SPEED;
+	}
+	else if(Keyboard_IsKeyPressed(KEY_DOWN))
+	{
+		player.pos.y += PLAYER_SPEED;
+	}
+	else if(Keyboard_IsKeyPressed(KEY_RIGHT))
+	{
+		player.pos.x += PLAYER_SPEED;
+		player.flipHorizontal = false;
+	}
+	else if(Keyboard_IsKeyPressed(KEY_LEFT))
+	{
+		player.pos.x -= PLAYER_SPEED;
+		player.flipHorizontal = true;
+	}
+	else
+	{
+		// TODO: Stop player walk
 	}
 
 	for(i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
@@ -237,10 +243,13 @@ void UpdateGame()
 			// Did we hit a rabbit?
 			for(j = 0; j < RABBIT_COUNT; ++j)
 			{
-				if(CheckBoxCollision(&bullets[i].pos, &rabbits[j].pos, BULLET_SIZE, RABBIT_SIZE))
+				if(rabbits[j].state != 0)
 				{
-					bullets[i].state == 0;
-					// Rabbit is hit with a bullet!
+					if(CheckBoxCollision(&bullets[i].pos, &rabbits[j].pos, BULLET_SIZE, RABBIT_SIZE))
+					{
+						bullets[i].state == 0;
+						// Rabbit is hit with a bullet!
+					}
 				}
 			}
 

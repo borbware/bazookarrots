@@ -108,6 +108,7 @@ void MoveRabbitToSpawn(u8 index);
 
 // Sprite by GrafxKid (https://opengameart.org/content/super-random-sprites)
 #include "content/data_sprt_16or.h"
+#include "gfx/carrot.h"
 
 // Character animation
 const u8 g_CharAnim[] = { '|', '\\', '-', '/' };
@@ -130,11 +131,13 @@ u16 t = 0;
 u8 g_VBlank = 0;
 u8 g_Frame = 0;
 
-// Sprite data
+// Sprite data for player
 u8 g_PatternData[PATTERN_16_NUM * 8];
+
 u8 g_PatternDataRotRight[PATTERN_16_NUM * 8];
 u8 g_PatternDataRotLeft[PATTERN_16_NUM * 8];
 u8 g_PatternDataRotHalf[PATTERN_16_NUM * 8];
+
 
 // Sprite buffer
 u8 g_Buffer1[32];
@@ -499,19 +502,20 @@ void Init16()
 
 	// Load 16x16 sprites (Pattern 96~143)
 	u8* ptr = g_PatternData;
-	for(u8 i5 = 0; i5 < 6; i5++)
+	// loops thru 8x8 sprites
+	for(u8 i5 = 0; i5 < 6; i5++) // white sprites 
 	{
-		Mem_Copy((u8*)g_DataSprt16or + (i5 * 2 +  0) * 8, ptr, 8); ptr += 8;
-		Mem_Copy((u8*)g_DataSprt16or + (i5 * 2 + 12) * 8, ptr, 8); ptr += 8;
-		Mem_Copy((u8*)g_DataSprt16or + (i5 * 2 +  1) * 8, ptr, 8); ptr += 8;
-		Mem_Copy((u8*)g_DataSprt16or + (i5 * 2 + 13) * 8, ptr, 8); ptr += 8;
+		Mem_Copy((u8*)g_DataSprt16or + (i5 * 2 +  0) * 8, ptr, 8); ptr += 8; // left up
+		Mem_Copy((u8*)g_DataSprt16or + (i5 * 2 + 12) * 8, ptr, 8); ptr += 8; // left down
+		Mem_Copy((u8*)g_DataSprt16or + (i5 * 2 +  1) * 8, ptr, 8); ptr += 8; // right up
+		Mem_Copy((u8*)g_DataSprt16or + (i5 * 2 + 13) * 8, ptr, 8); ptr += 8; // right down
 	}
-	for(u8 i6 = 0; i6 < 6; i6++)
+	for(u8 i6 = 0; i6 < 6; i6++) // black sprites
 	{
-		Mem_Copy((u8*)g_DataSprt16or + (i6 * 2 + 24) * 8, ptr, 8); ptr += 8;
-		Mem_Copy((u8*)g_DataSprt16or + (i6 * 2 + 36) * 8, ptr, 8); ptr += 8;
-		Mem_Copy((u8*)g_DataSprt16or + (i6 * 2 + 25) * 8, ptr, 8); ptr += 8;
-		Mem_Copy((u8*)g_DataSprt16or + (i6 * 2 + 37) * 8, ptr, 8); ptr += 8;
+		Mem_Copy((u8*)g_DataSprt16or + (i6 * 2 + 24) * 8, ptr, 8); ptr += 8; // left up
+		Mem_Copy((u8*)g_DataSprt16or + (i6 * 2 + 36) * 8, ptr, 8); ptr += 8; // left down
+		Mem_Copy((u8*)g_DataSprt16or + (i6 * 2 + 25) * 8, ptr, 8); ptr += 8; // right up
+		Mem_Copy((u8*)g_DataSprt16or + (i6 * 2 + 37) * 8, ptr, 8); ptr += 8; // right down
 	}
 
 	// Initialize 16x16 OR sprites

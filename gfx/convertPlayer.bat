@@ -1,0 +1,1 @@
+MSXimg player_movement.png -format c -out player.h -mode bmp -pos 0 16 -size 8 8 -gap 0 0 -num 8 4 -bpc 1 -trans 0xFF00FF -compress none -name g_player

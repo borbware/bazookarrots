@@ -21,7 +21,6 @@
 
 // Pattern enums
 #define PATTERN_16_NUM		(u8)(6*2*4)
-#define SPRITE_8_NUM		16
 
 // Functions
 typedef void (*fxFunc)(const u8*, u8*);
@@ -36,13 +35,7 @@ typedef struct
 // Function prototypes
 void Init16();
 void Update16();
-void Init8();
-void Update8();
 
-void DoCropLeft8(const u8* src, u8* dest);
-void DoCropRight8(const u8* src, u8* dest);
-void DoCropTop8(const u8* src, u8* dest);
-void DoCropBottom8(const u8* src, u8* dest);
 void SpriteFX_FlipVertical8(const u8* src, u8* dest);
 void SpriteFX_FlipHorizontal8(const u8* src, u8* dest);
 void SpriteFX_RotateRight8(const u8* src, u8* dest);
@@ -66,18 +59,13 @@ const u8 g_CharAnim[] = { '|', '\\', '-', '/' };
 //
 const u8* g_RotAnim[] = { g_PatternData, g_PatternDataRotLeft, g_PatternDataRotHalf, g_PatternDataRotRight };
 
-//
-const FSM_State g_State8  = { 0, Init8,  Update8,  NULL };
+// states
 const FSM_State g_State16 = { 0, Init16, Update16, NULL };
 
 //
 const EffectInfo g_Effect[] =
 {
 	{ "None",            NULL },
-	{ "Crop Left",       DoCropLeft8 },
-	{ "Crop Right",      DoCropRight8 },
-	{ "Crop Top",        DoCropTop8 },
-	{ "Crop Bottom",     DoCropBottom8 },
 	{ "Flip Vertical",   SpriteFX_FlipVertical8 },
 	{ "Flip Horizontal", SpriteFX_FlipHorizontal8 },
 	{ "Rotate Right",    SpriteFX_RotateRight8 },
@@ -111,7 +99,6 @@ u8 g_PosX1;
 
 //
 u8 g_FXIndex;
-VectorU8 g_SpritePos[SPRITE_8_NUM];
 
 //=============================================================================
 // HELPER FUNCTIONS
@@ -142,25 +129,9 @@ void VDP_FillSpritePattern(u8 val, u8 index, u8 count)
 	VDP_FillVRAM(val, low, g_SpritePatternHigh, count * 8);
 }
 
-//-----------------------------------------------------------------------------
-//
-void DoCropLeft8(const u8* src, u8* dest) { SpriteFX_CropLeft8(src, dest, (g_Frame >> 3) % 8); }
-
-//-----------------------------------------------------------------------------
-//
-void DoCropRight8(const u8* src, u8* dest) { SpriteFX_CropRight8(src, dest, (g_Frame >> 3) % 8); }
-
-//-----------------------------------------------------------------------------
-//
-void DoCropTop8(const u8* src, u8* dest) { SpriteFX_CropTop8(src, dest, (g_Frame >> 3) % 8); }
-
-//-----------------------------------------------------------------------------
-//
-void DoCropBottom8(const u8* src, u8* dest) { SpriteFX_CropBottom8(src, dest, (g_Frame >> 3) % 8); }
 
 
 //-----------------------------------------------------------------------------
-// Initialize 16x16
 void Init16()
 {
 	// Setup screen
@@ -232,9 +203,6 @@ void Init16()
 	Print_DrawTextAt(1, 10, "Flip H");
 	Print_DrawCharXAt(0, 12, '\x9F', 32);
 
-	Print_DrawTextAt(1, 16, "Mask");
-	Print_DrawCharXAt(0, 18, '\x9F', 32);
-
 	Print_DrawTextAt(1, 22, "Rotate");
 
 	Print_DrawTextAt(31-7, 22, "\x82:Flip V");
@@ -242,7 +210,6 @@ void Init16()
 }
 
 //-----------------------------------------------------------------------------
-// Update 16x16
 void Update16()
 {
 	bool bToggle = Keyboard_IsKeyPressed(KEY_UP) || Keyboard_IsKeyPressed(KEY_DOWN);
@@ -306,8 +273,8 @@ void Update16()
 	VDP_LoadSpritePattern(g_RotAnim[rot] + pat, 24, 4);
 	VDP_LoadSpritePattern(g_RotAnim[rot] + pat + (24 * 8), 28, 4);
 
-	if(Keyboard_IsKeyPressed(KEY_SPACE))
-		FSM_SetState(&g_State8);
+	// if(Keyboard_IsKeyPressed(KEY_SPACE))
+	// 	FSM_SetState(&g_State8);
 }
 
 //-----------------------------------------------------------------------------
@@ -319,113 +286,6 @@ void SetFX(u8 id)
 	Print_DrawTextAt(0, 3, "Effect: ");
 	Print_DrawText(g_Effect[g_FXIndex].Name);
 }
-
-//-----------------------------------------------------------------------------
-//
-void Init8()
-{
-	// Setup screen
-	VDP_SetMode(VDP_MODE_SCREEN4);
-	VDP_SetColor(COLOR_DARK_BLUE);
-	VDP_ClearVRAM();
-	
-	// Setup sprite
-	VDP_EnableSprite(TRUE);
-	VDP_SetSpriteFlag(VDP_SPRITE_SIZE_8);
-
-	// Loading sprite data
-	VDP_LoadSpritePattern(g_Font_MGL_Symbol1 + 4 + (16 * 10 * 8), 0, 32);
-
-	// Initialize sprite attribute
-	loop(i, SPRITE_8_NUM)
-	{
-		VectorU8* vec = &g_SpritePos[i];
-		vec->x = Math_GetRandom8();
-		vec->y = 32 + (Math_GetRandom8() % 128);
-		VDP_SetSpriteExUniColor(i, vec->x, vec->y, i, 7 + (i % 8));
-	}
-
-	// Setup print
-	Print_SetTextFont(g_Font_MGL_Sample8, 0);
-	Print_SetColor(0xF, 0x4);
-	VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (0*256*8), 32*4*8);
-	VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (1*256*8), 32*4*8);
-	VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (2*256*8), 32*4*8);
-
-	Print_DrawTextAt(0, 0, "\x2\x3\x4\x5 Sprite FX sample (8x8)");
-	Print_DrawCharXAt(0, 1, '\x17', 32);
-
-	Print_DrawTextAt(31-7, 20, "\x8D:FX");
-	Print_DrawTextAt(31-7, 21, "\x8E:None");
-	Print_DrawTextAt(31-7, 22, "\x8F:Stop");
-	Print_DrawTextAt(31-7, 23, "\x83:16x16");
-
-	SetFX(0);
-}
-
-//-----------------------------------------------------------------------------
-//
-void Update8()
-{
-	bool bDefault = Keyboard_IsKeyPressed(KEY_UP);
-	bool bStop = Keyboard_IsKeyPressed(KEY_DOWN);
-
-	// Initialize sprite attribute
-	const u8* pat = g_Font_MGL_Symbol1 + 4 + (16 * 10 * 8);
-	u16 vram = g_SpritePatternLow;
-	loop(i, SPRITE_8_NUM)
-	{
-		if(!bStop && (g_Frame & 0x03) == 0)
-		{
-			VectorU8* vec = &g_SpritePos[i];
-			switch(i % 8)
-			{
-			case 0: vec->x++; vec->y++; break;
-			case 1:	vec->x++; break;
-			case 2: vec->x++; vec->y--; break;
-			case 3: vec->y--; break;
-			case 4: vec->x--; vec->y--; break;
-			case 5: vec->x--; break;
-			case 6: vec->x--; vec->y++; break;
-			case 7: vec->y++; break;
-			}
-			if(vec->y < 32)
-				vec->y += 128;
-			if(vec->y > 128+32)
-				vec->y -= 128;
-			VDP_SetSpritePosition(i, vec->x, vec->y);			
-		}
-			
-		const EffectInfo* fx = &g_Effect[g_FXIndex];
-		const u8* ptr = pat;
-		if(!bDefault && fx->Func)
-		{
-			fx->Func(pat, g_Buffer1);
-			ptr = g_Buffer1;
-		}
-		VDP_WriteVRAM(ptr, vram, g_SpritePatternHigh, 8);
-		pat += 8;
-		vram += 8;
-	}
-
-	if(Keyboard_IsKeyPressed(KEY_RIGHT))
-	{
-		SetFX((g_FXIndex + 1) % numberof(g_Effect));
-		while(Keyboard_IsKeyPressed(KEY_RIGHT)) {}
-	}
-	else if(Keyboard_IsKeyPressed(KEY_LEFT))
-	{
-		SetFX((g_FXIndex + numberof(g_Effect) - 1) % numberof(g_Effect));
-		while(Keyboard_IsKeyPressed(KEY_LEFT)) {}
-	}
-
-	if(Keyboard_IsKeyPressed(KEY_SPACE))
-		FSM_SetState(&g_State16);
-}
-
-//=============================================================================
-// MAIN LOOP
-//=============================================================================
 
 //-----------------------------------------------------------------------------
 // Program entry point

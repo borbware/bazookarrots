@@ -1,1 +1,1 @@
-MSXimg data.png
+MSXimg data.png -out test.png -mode bmp -pos 128 80 -size 8 8 -gap 0 0 -num 12 4 -l ? col2 -trans color #FF00FF -compress ? none

@@ -365,7 +365,7 @@ bool InInBounds(VectorI16* pos, u8 size)
 
 void CheckShootInputAndMaybeShoot()
 {
-	if(Keyboard_IsKeyPressed(KEY_SPACE))
+	if(Keyboard_IsKeyPushed(KEY_SPACE))
 	{
 		for(i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
 		{
@@ -542,10 +542,10 @@ void Update16()
 		if(bullets[i].state == 1)
 		{
 			u8 rot = (g_Frame >> 4) % 4;
-			VDP_SetSpritePosition(2, bullets[i].pos.x, bullets[i].pos.y);
-			VDP_SetSpritePosition(3, bullets[i].pos.x, bullets[i].pos.y);
-			VDP_LoadSpritePattern(g_RotAnim[rot] + pat, 8, 4);
-			VDP_LoadSpritePattern(g_RotAnim[rot] + pat + (24 * 8), 12, 4);
+			VDP_SetSpritePosition(2 + i, bullets[i].pos.x, bullets[i].pos.y);
+			VDP_SetSpritePosition(3 + i, bullets[i].pos.x, bullets[i].pos.y);
+			VDP_LoadSpritePattern(g_RotAnim[rot] + pat, (2 + i) * 4, 4);
+			VDP_LoadSpritePattern(g_RotAnim[rot] + pat + (24 * 8), (3 + i) * 4, 4);
 		}
 	}
 
@@ -567,6 +567,7 @@ void main()
 	bool bContinue = TRUE;
 	while(bContinue)
 	{
+		Keyboard_Update();
 		// VDP_SetColor(COLOR_DARK_BLUE);
 		WaitVBlank();
 		// VDP_SetColor(COLOR_LIGHT_BLUE);

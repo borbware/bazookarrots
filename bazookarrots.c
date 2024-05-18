@@ -60,6 +60,8 @@ typedef struct
 
 #define PLAYER_SIZE 16
 #define MAX_CARROTS_IN_CARRY 3
+#define PLAYER_SPEED 4;
+#define PLAYER_SPEED_DIAGONAL 2;
 typedef struct 
 {
 	u8 state; // 0 = Inactive, 1 = Moving
@@ -199,6 +201,44 @@ void UpdateGame()
 	// Update bullets
 	// Update UI
 
+	if(Keyboard_IsKeyPressed(KEY_UP))
+	{
+		player.pos.y += PLAYER_SPEED;
+	}
+	else if(Keyboard_IsKeyPressed(KEY_DOWN))
+	{
+		player.pos.y -= PLAYER_SPEED;
+	}
+	else if(Keyboard_IsKeyPressed(KEY_RIGHT))
+	{
+		player.pos.y += PLAYER_SPEED;
+	}
+	else if(Keyboard_IsKeyPressed(KEY_LEFT))
+	{
+		player.pos.y += PLAYER_SPEED;
+	}
+
+	if(Keyboard_IsKeyPressed(KEY_UP) && Keyboard_IsKeyPressed(KEY_RIGHT))
+	{
+		player.pos.y += PLAYER_SPEED_DIAGONAL;
+		player.pos.x += PLAYER_SPEED_DIAGONAL;
+	}
+	else if(Keyboard_IsKeyPressed(KEY_UP) && Keyboard_IsKeyPressed(KEY_LEFT))
+	{
+		player.pos.y += PLAYER_SPEED_DIAGONAL;
+		player.pos.x -= PLAYER_SPEED_DIAGONAL;
+	}
+	else if(Keyboard_IsKeyPressed(KEY_DOWN) && Keyboard_IsKeyPressed(KEY_RIGHT))
+	{
+		player.pos.y -= PLAYER_SPEED_DIAGONAL;
+		player.pos.x -= PLAYER_SPEED_DIAGONAL;
+	}
+	else if(Keyboard_IsKeyPressed(KEY_DOWN) && Keyboard_IsKeyPressed(KEY_LEFT))
+	{
+		player.pos.y -= PLAYER_SPEED_DIAGONAL;
+		player.pos.x -= PLAYER_SPEED_DIAGONAL;
+	}
+
 	for(i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
 	{
 		if(bullets[i].state == 1)
@@ -288,7 +328,7 @@ void UpdateGame()
 	}
 }
 
-// Pos is top right corner
+// Pos is top left corner
 // Return true if collision occures
 bool CheckBoxCollision(VectorI16* posA, VectorI16* posB, u8 sizeA, u8 sizeB)
 {

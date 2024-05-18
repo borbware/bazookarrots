@@ -43,6 +43,7 @@ typedef struct
 
 #define RABBIT_SIZE 16
 #define RABBIT_SPEED 1
+#define RABBIT_ANIMATION_FRAMES 4
 typedef struct 
 {
 	u8 state; // 0 = Inactive, 1 = Running to target, 2 = Eating, 3 = Hit
@@ -65,6 +66,7 @@ typedef struct
 #define MAX_CARROTS_IN_CARRY 3
 #define PLAYER_SPEED 4;
 #define PLAYER_SPEED_DIAGONAL 2;
+#define PLAYER_ANIMATION_FRAMES 4
 typedef struct 
 {
 	u8 state; // 0 = Inactive, 1 = Moving
@@ -109,6 +111,9 @@ void MoveRabbitToSpawn(u8 index);
 // Sprite by GrafxKid (https://opengameart.org/content/super-random-sprites)
 #include "content/data_sprt_16or.h"
 #include "gfx/carrot.h"
+#include "gfx/carrot_ground.h"
+#include "gfx/rabbit.h"
+#include "gfx/player.h"
 
 // Character animation
 const u8 g_CharAnim[] = { '|', '\\', '-', '/' };
@@ -537,20 +542,24 @@ void InitDraw()
 	VDP_SetSpriteExUniColor(7, 0, 0, 7 * 4, VDP_SPRITE_CC + 0x01);
 
 	// bullets
-	VDP_SetSpriteExUniColor(8, 0, 0, 8 * 4, 0x03);
-	VDP_SetSpriteExUniColor(9, 0, 0, 9 * 4, VDP_SPRITE_CC + 0x01);
-	VDP_SetSpriteExUniColor(10, 0, 0, 10 * 4, 0x03);
-	VDP_SetSpriteExUniColor(11, 0, 0, 11 * 4, VDP_SPRITE_CC + 0x01);
-	VDP_SetSpriteExUniColor(12, 0, 0, 12 * 4, 0x03);
-	VDP_SetSpriteExUniColor(13, 0, 0, 13 * 4, VDP_SPRITE_CC + 0x01);
-	VDP_LoadSpritePattern(g_carrot,         8 * 4, 4);
-	VDP_LoadSpritePattern(g_carrot + 4 * 8, 9 * 4, 4);
-	VDP_LoadSpritePattern(g_carrot,         10 * 4, 4);
-	VDP_LoadSpritePattern(g_carrot + 4 * 8, 11 * 4, 4);
-	VDP_LoadSpritePattern(g_carrot,         12 * 4, 4);
-	VDP_LoadSpritePattern(g_carrot + 4 * 8, 13 * 4, 4);
+	const int carrot_index = 8;
+	for (i = 0; i < MAX_CARROTS_IN_CARRY; ++i )
+	{
+		VDP_SetSpriteExUniColor(carrot_index + i,     0, 0, (carrot_index + i) * 4, 0x03);
+		VDP_SetSpriteExUniColor(carrot_index + 1 + i, 0, 0, (carrot_index + 1 + i) * 4, VDP_SPRITE_CC + 0x01);
+		VDP_LoadSpritePattern(g_carrot,                     (carrot_index + i) * 4, 4);
+		VDP_LoadSpritePattern(g_carrot + 4 * 8,             (carrot_index + 1 + i) * 4, 4);
+	}
 
-	// rabbit
+	// rabbits
+	const int rabbit_index = carrot_index + MAX_CARROTS_IN_CARRY * 2;
+	for (i = 0; i < RABBIT_COUNT; ++i )
+	{
+		VDP_SetSpriteExUniColor(rabbit_index + i,     0, 0,               (rabbit_index + i) * 4, 0x03);
+		VDP_SetSpriteExUniColor(rabbit_index + 1 + i, 0, 0,               (rabbit_index + 1 + i) * 4, VDP_SPRITE_CC + 0x01);
+		VDP_LoadSpritePattern(g_rabbit,                                   (rabbit_index + i) * 4, 4);
+		VDP_LoadSpritePattern(g_rabbit + 4 * RABBIT_ANIMATION_FRAMES * 8, (rabbit_index + 1 + i) * 4, 4);
+	}
 
 	VDP_HideSpriteFrom(8);
 
@@ -601,6 +610,12 @@ void UpdateDraw()
 	// u8 rot = (g_Frame >> 4) % 4;
 	// VDP_LoadSpritePattern(g_RotAnim[rot] + pat, 24, 4);
 	// VDP_LoadSpritePattern(g_RotAnim[rot] + pat + (24 * 8), 28, 4);
+
+	for (i = 0; i < RABBIT_COUNT; ++i )
+	{
+		VDP_SetSpritePosition(14 + i,     rabbits[i].pos.x, rabbits[i].pos.y);
+		VDP_SetSpritePosition(14 + 1 + i, rabbits[i].pos.x, rabbits[i].pos.y);
+	}
 
 	// DRAW CARROTS
 	for(i = 0; i < MAX_CARROTS_IN_CARRY; ++i)

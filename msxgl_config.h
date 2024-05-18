@@ -204,7 +204,7 @@
 #define PRINT_USE_VALIDATOR			TRUE	// Add validator character code
 #define PRINT_USE_UNIT				FALSE	// Display integer type (h: hexadecimal, b: binary)
 #define PRINT_USE_FORMAT			TRUE	// Add printf type function
-#define PRINT_USE_32B				TRUE	// Allow to print 32-bits integers
+#define PRINT_USE_32B				FALSE	// Allow to print 32-bits integers
 #define PRINT_SKIP_SPACE			TRUE	// Skill space character
 #define PRINT_COLOR_NUM				12		// 1 color per line
 // Character width

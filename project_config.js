@@ -31,7 +31,7 @@ ProjModules = [ ProjName ];
 // ProjSegments = "";
 
 //-- List of library modules to build (array)
-LibModules = ["system", "bios", "vdp", "print", "input", "memory", "math", "draw", "sprite_fx", "fsm"];
+LibModules = ["system", "bios", "vdp", "print", "input", "memory", "math", "draw", "sprite_fx", "fsm", "tile"];
 
 //-- Additional sources to be compiled and linked with the project (array)
 // AddSources = [];

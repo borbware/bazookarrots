@@ -15,6 +15,7 @@
 #include "fsm.h"
 #include "sprite_fx.h"
 #include "math.h"
+#include "tile.h"
 
 //=============================================================================
 // DEFINES
@@ -104,9 +105,8 @@ void MoveRabbitToSpawn(u8 index);
 // READ-ONLY DATA
 //=============================================================================
 
-// Fonts
-#include "font/font_mgl_sample8.h"
-#include "font/font_mgl_symbol1.h"
+// V9990 4-bits background data
+#include "content/tile/data_bg_4b.h"
 
 // Sprite by GrafxKid (https://opengameart.org/content/super-random-sprites)
 #include "content/data_sprt_16or.h"
@@ -115,20 +115,62 @@ void MoveRabbitToSpawn(u8 index);
 #include "gfx/rabbit.h"
 #include "gfx/player.h"
 
+// Fonts
+#include "font/font_mgl_sample8.h"
+
 // Character animation
-const u8 g_CharAnim[] = { '|', '\\', '-', '/' };
-//
 const u8* g_RotAnim[] = { g_PatternData, g_PatternDataRotLeft, g_PatternDataRotHalf, g_PatternDataRotRight };
 
 // states
 const FSM_State g_StateGame = {1, InitGameData, UpdateGame, NULL};
 const FSM_State g_GameOver = {2, InitGameOver, UpdateGameOver, NULL};
 
-u16 timeLeft = 60;
+// Sample level tiles map
+const u8 g_TileMap[] =
+{
+	 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+	 000, 000, 000, 132, 133, 134, 135, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+	 000, 000, 000, 164, 165, 166, 167, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 132, 133, 134, 135, 000, 000, 000, 000, 000, 000, 000, 
+	 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 136, 137, 000, 000, 000, 000, 000, 000, 000, 000, 164, 165, 166, 167, 000, 000, 000, 000, 000, 000, 000, 
+	 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 168, 169, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 136, 137, 000, 
+	 000, 000, 000, 000, 000, 000, 136, 137, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 168, 169, 000, 
+	 000, 000, 000, 000, 000, 000, 168, 169, 000, 000, 000, 000, 000, 000, 000, 000, 000, 136, 137, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+	 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 168, 169, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+	 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+	 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+	 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+	 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+	 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+	 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+	 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+	 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000,  28,  29, 000, 000, 000, 
+	 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000,  32,  33,  34,  35, 000, 000, 000, 000, 000, 000,  59,  60,  61,  62, 000, 000, 
+	 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000,  96,  97,  98,  99, 000, 000, 000, 000, 000,  90,  91,  92,  93,  94,  95, 000, 
+	 000, 000, 000, 000, 000, 000,  32,  33,  34,  35, 000, 000, 000, 000, 000, 000,  64,  65,  66,  67, 000, 000, 000, 000, 000, 122, 123, 124, 125, 126, 127, 000, 
+	 000, 000, 000, 000, 000, 000,  96,  97,  98,  99, 000, 000, 000, 000, 000, 000,  96,  97,  98,  99, 000, 000, 000, 000, 000, 154, 155, 156, 157, 158, 159, 000, 
+	 000, 000, 000, 000, 000, 000,  64,  65,  66,  67, 000, 000, 000, 000, 000, 000,  64,  65,  66,  67, 000, 000, 000, 000, 000, 000, 000, 188, 189, 000, 000, 000, 
+	  33,  34,  33,  34,  33,  34,   8,  97,  98,  69,  33,  34,  33,  34,  33,  34,   8,  97,  98,  69,  33,  34,  33,  34,  33,  34,  33,  34,  33,  34,  33,  34, 
+	  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65, 
+	  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97, 
+	  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65, 
+	  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97,  98,  97, 
+};
+
+const u8 g_TreeTileMap[] =
+{
+	 000, 000,  28,  29, 000, 000,
+	 000,  59,  60,  61,  62, 000,
+	  90,  91,  92,  93,  94,  95,
+	 122, 123, 124, 125, 126, 127,
+	 154, 155, 156, 157, 158, 159,
+	 000, 000, 188, 189, 000, 000,
+};
 
 //=============================================================================
 // MEMORY DATA
 //=============================================================================
+
+u16 timeLeft = 60;
 
 // Screen mode setting index
 u8 g_VBlank = 0;
@@ -498,10 +540,39 @@ void WaitVBlank()
 //-----------------------------------------------------------------------------
 void InitDraw()
 {
-	// Setup screen
-	VDP_SetMode(VDP_MODE_SCREEN4);
-	VDP_SetColor(COLOR_DARK_BLUE);
 	VDP_ClearVRAM();
+
+	// Setup screen
+	VDP_SetMode(VDP_MODE_SCREEN5);
+	VDP_SetColor(COLOR_DARK_BLUE);
+	VDP_SetPage(0);
+
+	// Setup tilemap
+	Tile_SetBankPage(2);
+	Tile_FillBank(0, 6);
+	Tile_FillBank(1, 7);
+	Tile_FillBank(2, 8);
+	Tile_FillBank(3, 9);
+	Tile_LoadBank(0, g_DataBG4b, sizeof(g_DataBG4b) / TILE_CELL_BYTES);
+	Tile_LoadBank(2, g_DataBG4b, sizeof(g_DataBG4b) / TILE_CELL_BYTES);
+	//for(u8 i = 0; i < 15; ++i)
+	//	VDP_SetPaletteEntry(i + 1, *(u16*)&g_DataBG4b_palette[i*2]);
+
+	// Draw level
+	Tile_SetDrawPage(0);
+	Tile_SelectBank(0);
+	Tile_FillScreen(6);
+	Tile_DrawMapChunk( 0, 15, g_TreeTileMap, 6, 6); // Draw tree tilemap
+	Tile_DrawMapChunk( 3, 15, g_TreeTileMap, 6, 6);
+	Tile_DrawMapChunk(11, 15, g_TreeTileMap, 6, 6);
+	Tile_DrawScreen(g_TileMap); // Draw the whole screen tilemap
+	Tile_DrawBlock(10, 8, 4, 4, 4, 2); // Draw a cloud (4x2 tiles)
+
+	// Setup and draw UI
+	Print_SetBitmapFont(g_Font_MGL_Sample8);
+	Print_SetColor(0x11, 0x66);
+	Print_SetPosition(4, 4);
+	Print_DrawText("TIME");
 	
 	// Setup sprite
 	VDP_EnableSprite(TRUE);
@@ -572,13 +643,9 @@ void InitDraw()
 		SpriteFX_RotateHalfTurn16(&g_PatternData[idx], &g_PatternDataRotHalf[idx]);
 	}
 
-	// Setup print
-	Print_SetTextFont(g_Font_MGL_Sample8, 0);
-	Print_SetColor(0xF, 0x4);
 	// VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (0*256*8), 32*4*8);
 	// VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (1*256*8), 32*4*8);
 	// VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (2*256*8), 32*4*8);
-
 }
 
 //-----------------------------------------------------------------------------
@@ -638,14 +705,14 @@ void UpdateDraw()
 		}
 		else
 		{
-			VDP_HideSprite(8 + i);
-			VDP_HideSprite(9 + i);
+			//VDP_HideSprite(8 + i);
+			//VDP_HideSprite(9 + i);
 		}
 	}
 
 	// Draw UI
-	Print_DrawTextAt(1, 1, "TIME");
-	Print_DrawIntAt(8, 1, timeLeft);
+	Print_SetPosition(40, 4);
+	Print_DrawInt(timeLeft);
 
 	// if(Keyboard_IsKeyPressed(KEY_SPACE))
 	// 	FSM_SetState(&g_State8);
@@ -658,6 +725,7 @@ void main()
 	// Setup system
 	Bios_SetKeyClick(FALSE);
 	Bios_SetHookCallback(H_TIMI, VBlankHook);
+	VDP_EnableVBlank(TRUE);
 
 	FSM_SetState(&g_StateGame);
 

@@ -689,10 +689,17 @@ void UpdateDraw()
 	// VDP_LoadSpritePattern(g_RotAnim[rot] + pat, 24, 4);
 	// VDP_LoadSpritePattern(g_RotAnim[rot] + pat + (24 * 8), 28, 4);
 
+	frame = (g_Frame >> 2) % RABBIT_ANIMATION_FRAMES;
+	pat = (frame * 8 * 4);
+	pat1 = g_RabbitSpriteData + pat;
+	pat2 = g_RabbitSpriteData + pat + RABBIT_ANIMATION_FRAMES * 4 * 8;
+
 	for (i = 0; i < RABBIT_COUNT; ++i )
 	{
 		VDP_SetSpritePosition(14 + i,     rabbits[i].pos.x, rabbits[i].pos.y);
 		VDP_SetSpritePosition(14 + 1 + i, rabbits[i].pos.x, rabbits[i].pos.y);
+		VDP_LoadSpritePattern(pat1, 14, 4);
+		VDP_LoadSpritePattern(pat2, 14 + 1 * 4, 4);
 	}
 
 	// DRAW CARROTS

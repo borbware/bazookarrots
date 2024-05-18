@@ -65,9 +65,9 @@ typedef struct
 
 #define PLAYER_SIZE 16
 #define MAX_CARROTS_IN_CARRY 3
-#define PLAYER_SPEED 4;
-#define PLAYER_SPEED_DIAGONAL 2;
-#define PLAYER_ANIMATION_FRAMES 6
+#define PLAYER_SPEED 4
+#define PLAYER_SPEED_DIAGONAL 2
+#define PLAYER_ANIMATION_FRAMES 4
 typedef struct 
 {
 	u8 state; // 0 = Inactive, 1 = Moving
@@ -185,9 +185,9 @@ u8 g_PatternDataRotRight[PATTERN_16_NUM * 8];
 u8 g_PatternDataRotLeft[PATTERN_16_NUM * 8];
 u8 g_PatternDataRotHalf[PATTERN_16_NUM * 8];
 
-u8 g_PlayerSpriteData[4 * 8];
-u8 g_CarrotSpriteData[1 * 8];
-u8 g_RabbitSpriteData[3 * 8];
+u8 g_PlayerSpriteData[PLAYER_ANIMATION_FRAMES * 2 * 4 * 8];
+u8 g_CarrotSpriteData[1 * 2 * 4 * 8];
+u8 g_RabbitSpriteData[RABBIT_ANIMATION_FRAMES * 2 * 4 * 8];
 
 
 // Sprite buffer
@@ -527,20 +527,20 @@ void UpdateGameOver()
 void RearrangeSprites(u8* origData, u8* dest, u8 anim_len)
 {
 	u8 offset = 0;
-	for(u8 i5 = 0; i5 < 6; i5++) // white sprites 
+	for(u8 i5 = 0; i5 < anim_len; i5++) // white sprites 
 	{
-		Mem_Copy(origData + (i5 * 2 +  0 + offset) * 8, dest, 8); dest += 8; // left up
-		Mem_Copy(origData + (i5 * 2 + anim_len * 2 + offset) * 8, dest, 8); dest += 8; // left down
-		Mem_Copy(origData + (i5 * 2 +  1 + offset) * 8, dest, 8); dest += 8; // right up
-		Mem_Copy(origData + (i5 * 2 + anim_len * 2 + 1 + offset) * 8, dest, 8); dest += 8; // right down
+		Mem_Copy(origData + (i5 * 2                + offset    ) * 8, dest, 8); dest += 8; // left up
+		Mem_Copy(origData + (i5 * 2 + anim_len * 2 + offset    ) * 8, dest, 8); dest += 8; // left down
+		Mem_Copy(origData + (i5 * 2                + offset + 1) * 8, dest, 8); dest += 8; // right up
+		Mem_Copy(origData + (i5 * 2 + anim_len * 2 + offset + 1) * 8, dest, 8); dest += 8; // right down
 	}
 	offset = anim_len * 4;
-	for(u8 i6 = 0; i6 < 6; i6++) // black sprites
+	for(u8 i6 = 0; i6 < anim_len; i6++) // black sprites
 	{
-		Mem_Copy(origData + (i6 * 2 +  0 + offset) * 8, dest, 8); dest += 8; // left up
-		Mem_Copy(origData + (i6 * 2 + anim_len * 2 + offset) * 8, dest, 8); dest += 8; // left down
-		Mem_Copy(origData + (i6 * 2 +  1 + offset) * 8, dest, 8); dest += 8; // right up
-		Mem_Copy(origData + (i6 * 2 + anim_len * 2 + 1 + offset) * 8, dest, 8); dest += 8; // right down
+		Mem_Copy(origData + (i6 * 2                + offset    ) * 8, dest, 8); dest += 8; // left up
+		Mem_Copy(origData + (i6 * 2 + anim_len * 2 + offset    ) * 8, dest, 8); dest += 8; // left down
+		Mem_Copy(origData + (i6 * 2                + offset + 1) * 8, dest, 8); dest += 8; // right up
+		Mem_Copy(origData + (i6 * 2 + anim_len * 2 + offset + 1) * 8, dest, 8); dest += 8; // right down
 	}
 }
 
@@ -603,9 +603,9 @@ void InitDraw()
 
 	// Load sprites in correct order to memory
 	RearrangeSprites(g_DataSprt16or, g_PatternData, 6);
-	// RearrangeSprites(g_carrot, g_CarrotSpriteData, 1);
-	// RearrangeSprites(g_rabbit, g_RabbitSpriteData, RABBIT_ANIMATION_FRAMES);
-	// RearrangeSprites(g_player, g_PlayerSpriteData, PLAYER_ANIMATION_FRAMES);
+	RearrangeSprites(g_carrot, g_CarrotSpriteData, 1);
+	RearrangeSprites(g_rabbit, g_RabbitSpriteData, RABBIT_ANIMATION_FRAMES);
+	RearrangeSprites(g_player, g_PlayerSpriteData, PLAYER_ANIMATION_FRAMES);
 
 	// Initialize 16x16 OR sprites
 	VDP_SetPaletteEntry(2, RGB16(7, 7, 7));
@@ -629,8 +629,8 @@ void InitDraw()
 	{
 		VDP_SetSpriteExUniColor(carrot_index + i,     0, 0, (carrot_index + i) * 4, 0x03);
 		VDP_SetSpriteExUniColor(carrot_index + 1 + i, 0, 0, (carrot_index + 1 + i) * 4, VDP_SPRITE_CC + 0x01);
-		VDP_LoadSpritePattern(g_carrot,                     (carrot_index + i) * 4, 4);
-		VDP_LoadSpritePattern(g_carrot + 4 * 8,             (carrot_index + 1 + i) * 4, 4);
+		VDP_LoadSpritePattern(g_CarrotSpriteData,                     (carrot_index + i) * 4, 4);
+		VDP_LoadSpritePattern(g_CarrotSpriteData + 4 * 8,             (carrot_index + 1 + i) * 4, 4);
 	}
 
 	// rabbits
@@ -639,8 +639,8 @@ void InitDraw()
 	{
 		VDP_SetSpriteExUniColor(rabbit_index + i,     0, 0,               (rabbit_index + i) * 4, 0x03);
 		VDP_SetSpriteExUniColor(rabbit_index + 1 + i, 0, 0,               (rabbit_index + 1 + i) * 4, VDP_SPRITE_CC + 0x01);
-		VDP_LoadSpritePattern(g_rabbit,                                   (rabbit_index + i) * 4, 4);
-		VDP_LoadSpritePattern(g_rabbit + 4 * RABBIT_ANIMATION_FRAMES * 8, (rabbit_index + 1 + i) * 4, 4);
+		VDP_LoadSpritePattern(g_RabbitSpriteData,                                   (rabbit_index + i) * 4, 4);
+		VDP_LoadSpritePattern(g_RabbitSpriteData + 4 * RABBIT_ANIMATION_FRAMES * 8, (rabbit_index + 1 + i) * 4, 4);
 	}
 
 	VDP_HideSpriteFrom(8);
@@ -666,8 +666,8 @@ void UpdateDraw()
 
 	u8 frame = (g_Frame >> 2) % PLAYER_ANIMATION_FRAMES;
 	u8 pat = (frame * 8 * 4);
-	u8* pat1 = g_PatternData + pat;
-	u8* pat2 = g_PatternData + pat + PLAYER_ANIMATION_FRAMES * 4 * 8;
+	u8* pat1 = g_PlayerSpriteData + pat;
+	u8* pat2 = g_PlayerSpriteData + pat + PLAYER_ANIMATION_FRAMES * 4 * 8;
 
 	// Flip horizontal
 	VDP_SetSpritePosition(0, player.pos.x, player.pos.y); // white sprite

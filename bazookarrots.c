@@ -702,8 +702,8 @@ void UpdateDraw()
 		}
 		else
 		{
-			//VDP_HideSprite(8 + i);
-			//VDP_HideSprite(9 + i);
+			VDP_HideSprite(8 + i);
+			VDP_HideSprite(9 + i);
 		}
 	}
 

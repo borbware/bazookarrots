@@ -104,6 +104,7 @@ const u8* g_RotAnim[] = { g_PatternData, g_PatternDataRotLeft, g_PatternDataRotH
 
 // states
 const FSM_State g_State16 = { 0, Init16, Update16, NULL };
+const FSM_State g_StateGame = {1, InitGameData, UpdateGame, NULL};
 
 //=============================================================================
 // MEMORY DATA
@@ -144,6 +145,7 @@ u8 tempY;
 
 void InitGameData()
 {
+	Init16();
 	for(i = 0; i < TARGET_COUNT; ++i)
 	{
 		targets[i].type = 0;
@@ -268,6 +270,7 @@ void UpdateGame()
 			rabbits[i].actionTimer--;
 		}
 	}
+	Update16();
 }
 
 // Pos is top right corner
@@ -432,8 +435,10 @@ void Update16()
 
 	// Flip horizontal
 	g_PosX1--;
-	VDP_SetSpritePositionX(2, g_PosX1);
-	VDP_SetSpritePositionX(3, g_PosX1);
+	VDP_SetSpritePositionX(2, player.pos.x);
+	VDP_SetSpritePositionY(2, player.pos.y);
+	VDP_SetSpritePositionX(3, player.pos.x);
+	VDP_SetSpritePositionY(3, player.pos.y);
 	pat1 = g_PatternData + pat;
 	pat2 = g_PatternData + pat + 24 * 8;
 	if(bToggle)
@@ -466,7 +471,7 @@ void main()
 	Bios_SetKeyClick(FALSE);
 	Bios_SetHookCallback(H_TIMI, VBlankHook);
 
-	FSM_SetState(&g_State16);
+	FSM_SetState(&g_StateGame);
 
 	bool bContinue = TRUE;
 	while(bContinue)

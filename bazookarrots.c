@@ -348,6 +348,13 @@ void UpdateGame()
 		}
 	}
 	Update16();
+
+	t += 1;
+	if (t % 60 == 0)
+		timeLeft -= 1;
+
+	if (timeLeft == 0)
+		FSM_SetState(&g_GameOver);
 }
 
 void MoveRabbitToSpawn(u8 index)
@@ -441,12 +448,20 @@ void CheckShootInputAndMaybeShoot()
 
 void InitGameOver()
 {
-	Print_DrawTextAt(4, 4, "GAME OVER");
+	// VDP_SetMode(VDP_MODE_SCREEN4);
+	VDP_SetColor(COLOR_BLACK);
+	VDP_ClearVRAM();
+
+	// Setup print
+	Print_SetTextFont(g_Font_MGL_Sample8, 0);
+	Print_SetColor(COLOR_WHITE, COLOR_BLACK);
+
+	Print_DrawTextAt(10, 10, "GAME OVER");	
 }
 
 void UpdateGameOver()
 {
-
+	
 }
 
 
@@ -608,12 +623,6 @@ void main()
 
 		if(Keyboard_IsKeyPressed(KEY_ESC))
 			bContinue = FALSE;
-		t += 1;
-		if (t % 60 == 0)
-			timeLeft -= 1;
-
-		if (t == 0)
-			FSM_SetState(&g_GameOver);
 		
 	}
 

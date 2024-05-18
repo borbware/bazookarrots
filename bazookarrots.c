@@ -556,8 +556,8 @@ void Update16()
 	u8* pat2 = g_PatternData + pat + 24 * 8;
 
 	// Flip horizontal
-	VDP_SetSpritePosition(0, player.pos.x, player.pos.y);
-	VDP_SetSpritePosition(1, player.pos.x, player.pos.y);
+	VDP_SetSpritePosition(0, player.pos.x, player.pos.y); // white sprite
+	VDP_SetSpritePosition(1, player.pos.x, player.pos.y); // black sprite
 	pat1 = g_PatternData + pat;
 	pat2 = g_PatternData + pat + 24 * 8;
 	if(player.flipHorizontal)

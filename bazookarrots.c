@@ -120,7 +120,6 @@ const FSM_State g_StateGame = {1, InitGameData, UpdateGame, NULL};
 const FSM_State g_GameOver = {2, InitGameOver, UpdateGameOver, NULL};
 
 u16 timeLeft = 60;
-u16 t = 0;
 
 //=============================================================================
 // MEMORY DATA
@@ -356,8 +355,7 @@ void UpdateGame()
 	}
 	UpdateDraw();
 
-	t += 1;
-	if (t % 60 == 0)
+	if (g_Frame % 60 == 0)
 		timeLeft -= 1;
 
 	if (timeLeft == 0)
@@ -527,16 +525,30 @@ void InitDraw()
 	VDP_SetPaletteEntry(3, RGB16(6, 4, 1));
 	
 	// player
-	VDP_SetSpriteExUniColor(0, 0, 0, 0, 0x02);
-	VDP_SetSpriteExUniColor(1, 0, 0, 4, VDP_SPRITE_CC + 0x01);
-	
+	VDP_SetSpriteExUniColor(0, 0, 0, 0 * 4, 0x02);
+	VDP_SetSpriteExUniColor(1, 0, 0, 1 * 4, VDP_SPRITE_CC + 0x01);
+
+	// rotating bersons
+	VDP_SetSpriteExUniColor(2, 0, 0, 2 * 4, 0x02);
+	VDP_SetSpriteExUniColor(3, 0, 0, 3 * 4, VDP_SPRITE_CC + 0x01);
+	VDP_SetSpriteExUniColor(4, 0, 0, 4 * 4, 0x02);
+	VDP_SetSpriteExUniColor(5, 0, 0, 5 * 4, VDP_SPRITE_CC + 0x01);
+	VDP_SetSpriteExUniColor(6, 0, 0, 6 * 4, 0x02);
+	VDP_SetSpriteExUniColor(7, 0, 0, 7 * 4, VDP_SPRITE_CC + 0x01);
+
 	// bullets
-	VDP_SetSpriteExUniColor(2, 0, 0, 8, 0x02);
-	VDP_SetSpriteExUniColor(3, 0, 0, 12, VDP_SPRITE_CC + 0x01);
-	VDP_SetSpriteExUniColor(4, 0, 0, 16, 0x02);
-	VDP_SetSpriteExUniColor(5, 0, 0, 20, VDP_SPRITE_CC + 0x01);
-	VDP_SetSpriteExUniColor(6, 0, 0, 24, 0x02);
-	VDP_SetSpriteExUniColor(7, 0, 0, 28, VDP_SPRITE_CC + 0x01);
+	VDP_SetSpriteExUniColor(8, 0, 0, 8 * 4, 0x03);
+	VDP_SetSpriteExUniColor(9, 0, 0, 9 * 4, VDP_SPRITE_CC + 0x01);
+	VDP_SetSpriteExUniColor(10, 0, 0, 10 * 4, 0x03);
+	VDP_SetSpriteExUniColor(11, 0, 0, 11 * 4, VDP_SPRITE_CC + 0x01);
+	VDP_SetSpriteExUniColor(12, 0, 0, 12 * 4, 0x03);
+	VDP_SetSpriteExUniColor(13, 0, 0, 13 * 4, VDP_SPRITE_CC + 0x01);
+	VDP_LoadSpritePattern(g_carrot,         8 * 4, 4);
+	VDP_LoadSpritePattern(g_carrot + 4 * 8, 9 * 4, 4);
+	VDP_LoadSpritePattern(g_carrot,         10 * 4, 4);
+	VDP_LoadSpritePattern(g_carrot + 4 * 8, 11 * 4, 4);
+	VDP_LoadSpritePattern(g_carrot,         12 * 4, 4);
+	VDP_LoadSpritePattern(g_carrot + 4 * 8, 13 * 4, 4);
 
 	// rabbit
 
@@ -573,8 +585,6 @@ void UpdateDraw()
 	// Flip horizontal
 	VDP_SetSpritePosition(0, player.pos.x, player.pos.y); // white sprite
 	VDP_SetSpritePosition(1, player.pos.x, player.pos.y); // black sprite
-	pat1 = g_PatternData + pat;
-	pat2 = g_PatternData + pat + 24 * 8;
 	if(player.flipHorizontal)
 	{
 		SpriteFX_FlipHorizontal16(pat1, g_Buffer1);
@@ -595,22 +605,26 @@ void UpdateDraw()
 	// DRAW CARROTS
 	for(i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
 	{
+
 		if(bullets[i].state == 1)
 		{
-			u8 rot = (g_Frame >> 4) % 4;
-			VDP_SetSprite(2 + i, bullets[i].pos.x, bullets[i].pos.y, 8 + i * 4);
-			VDP_SetSprite(3 + i, bullets[i].pos.x, bullets[i].pos.y, 12 + i * 4);
+			// VDP_SetSprite(8 + i, bullets[i].pos.x, bullets[i].pos.y, (4 * 8) + i * 4);
+			// VDP_SetSprite(9 + i, bullets[i].pos.x, bullets[i].pos.y, (4 * 9) + i * 4);
+			VDP_SetSpritePosition(8 + i, bullets[i].pos.x, bullets[i].pos.y);
+			VDP_SetSpritePosition(9 + i, bullets[i].pos.x, bullets[i].pos.y);
+			
+			// u8 rot = (g_Frame >> 4) % 4;
 			//VDP_SetSpritePosition(2 + i, bullets[i].pos.x, bullets[i].pos.y);
 			//VDP_SetSpritePosition(3 + i, bullets[i].pos.x, bullets[i].pos.y);
-			VDP_LoadSpritePattern(g_RotAnim[rot] + pat, (2 + i) * 4, 4);
-			VDP_LoadSpritePattern(g_RotAnim[rot] + pat + (24 * 8), (3 + i) * 4, 4);
+			// VDP_LoadSpritePattern(g_RotAnim[rot] + pat, (2 + i) * 4, 4);
+			// VDP_LoadSpritePattern(g_RotAnim[rot] + pat + (24 * 8), (3 + i) * 4, 4);
 			//VDP_LoadSpritePattern(pat1, 8 + i * 4, 4);
 			//VDP_LoadSpritePattern(pat2, 12 + i * 4, 4);
 		}
 		else
 		{
-			VDP_HideSprite(2 + i);
-			VDP_HideSprite(3 + i);
+			VDP_HideSprite(8 + i);
+			VDP_HideSprite(9 + i);
 		}
 	}
 

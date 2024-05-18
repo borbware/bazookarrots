@@ -131,10 +131,6 @@ u8 g_Buffer2[32];
 u8 g_Buffer3[32];
 u8 g_Buffer4[32];
 
-// Sprite X position
-u8 g_PosX0;
-u8 g_PosX1;
-
 //
 u8 g_FXIndex;
 
@@ -375,6 +371,8 @@ void CheckShootInputAndMaybeShoot()
 		{
 			if(bullets[i].state == 0)
 			{
+				bullets[i].pos.x = player.pos.x;
+				bullets[i].pos.y = player.pos.y;
 				bullets[i].state = 1;
 				if(player.dir == 0)
 				{
@@ -484,8 +482,6 @@ void Init16()
 	VDP_SetSpriteExUniColor(6, 64, (u8)(176-1), 24, 0x02);
 	VDP_SetSpriteExUniColor(7, 64, (u8)(176-1), 28, VDP_SPRITE_CC + 0x01);
 	VDP_HideSpriteFrom(8);
-	g_PosX0 = 0;
-	g_PosX1 = 0;
 
 	// Compute transformed sprite data
 	loop(i, 6 * 2)
@@ -509,7 +505,7 @@ void Init16()
 //-----------------------------------------------------------------------------
 void Update16()
 {
-	bool bToggle = Keyboard_IsKeyPressed(KEY_UP) || Keyboard_IsKeyPressed(KEY_DOWN);
+	// DRAW PLAYER
 
 	u8 frame = (g_Frame >> 2) % 6;
 	u8 pat = (frame * 8 * 4);
@@ -519,28 +515,40 @@ void Update16()
 	u8* pat2 = g_PatternData + pat + 24 * 8;
 
 	// Flip horizontal
-	VDP_SetSpritePositionX(2, player.pos.x);
-	VDP_SetSpritePositionY(2, player.pos.y);
-	VDP_SetSpritePositionX(3, player.pos.x);
-	VDP_SetSpritePositionY(3, player.pos.y);
+	VDP_SetSpritePosition(0, player.pos.x, player.pos.y);
+	VDP_SetSpritePosition(1, player.pos.x, player.pos.y);
 	pat1 = g_PatternData + pat;
 	pat2 = g_PatternData + pat + 24 * 8;
 	if(player.flipHorizontal)
 	{
 		SpriteFX_FlipHorizontal16(pat1, g_Buffer1);
 		SpriteFX_FlipHorizontal16(pat2, g_Buffer2);
-		VDP_LoadSpritePattern(g_Buffer1, 8, 4);
-		VDP_LoadSpritePattern(g_Buffer2, 12, 4);
+		VDP_LoadSpritePattern(g_Buffer1, 0, 4);
+		VDP_LoadSpritePattern(g_Buffer2, 4, 4);
 	}
 	else {
-		VDP_LoadSpritePattern(pat1, 8, 4);
-		VDP_LoadSpritePattern(pat2, 12, 4);
+		VDP_LoadSpritePattern(pat1, 0, 4);
+		VDP_LoadSpritePattern(pat2, 4, 4);
 	}
 
-	// Rotate 90°
-	u8 rot = (g_Frame >> 4) % 4;
-	VDP_LoadSpritePattern(g_RotAnim[rot] + pat, 24, 4);
-	VDP_LoadSpritePattern(g_RotAnim[rot] + pat + (24 * 8), 28, 4);
+	// // Rotate 90°
+	// u8 rot = (g_Frame >> 4) % 4;
+	// VDP_LoadSpritePattern(g_RotAnim[rot] + pat, 24, 4);
+	// VDP_LoadSpritePattern(g_RotAnim[rot] + pat + (24 * 8), 28, 4);
+
+	// DRAW CARROTS
+	for(i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
+	{
+		if(bullets[i].state == 1)
+		{
+			u8 rot = (g_Frame >> 4) % 4;
+			VDP_SetSpritePosition(2, bullets[i].pos.x, bullets[i].pos.y);
+			VDP_SetSpritePosition(3, bullets[i].pos.x, bullets[i].pos.y);
+			VDP_LoadSpritePattern(g_RotAnim[rot] + pat, 8, 4);
+			VDP_LoadSpritePattern(g_RotAnim[rot] + pat + (24 * 8), 12, 4);
+		}
+	}
+
 
 	// if(Keyboard_IsKeyPressed(KEY_SPACE))
 	// 	FSM_SetState(&g_State8);
@@ -565,8 +573,7 @@ void main()
 
 		FSM_Update();
 
-		// Sign-of-life	
-		Print_DrawCharAt(31, 0, g_CharAnim[g_Frame & 0x03]);
+		// Print_DrawCharAt(31, 0, g_CharAnim[g_Frame & 0x03]);
 
 		if(Keyboard_IsKeyPressed(KEY_ESC))
 			bContinue = FALSE;

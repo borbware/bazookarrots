@@ -517,14 +517,21 @@ void Init16()
 	// Initialize 16x16 OR sprites
 	VDP_SetPaletteEntry(2, RGB16(7, 7, 7));
 	VDP_SetPaletteEntry(3, RGB16(6, 4, 1));
-	VDP_SetSpriteExUniColor(0, 0, 32-1, 0, 0x02);
-	VDP_SetSpriteExUniColor(1, 0, 32-1, 4, VDP_SPRITE_CC + 0x01);
-	VDP_SetSpriteExUniColor(2, 0, 80-1, 8, 0x02);
-	VDP_SetSpriteExUniColor(3, 0, 80-1, 12, VDP_SPRITE_CC + 0x01);
-	VDP_SetSpriteExUniColor(4, 0, 128-1, 16, 0x02);
-	VDP_SetSpriteExUniColor(5, 0, 128-1, 20, VDP_SPRITE_CC + 0x01);
-	VDP_SetSpriteExUniColor(6, 64, (u8)(176-1), 24, 0x02);
-	VDP_SetSpriteExUniColor(7, 64, (u8)(176-1), 28, VDP_SPRITE_CC + 0x01);
+	
+	// player
+	VDP_SetSpriteExUniColor(0, 0, 0, 0, 0x02);
+	VDP_SetSpriteExUniColor(1, 0, 0, 4, VDP_SPRITE_CC + 0x01);
+	
+	// bullets
+	VDP_SetSpriteExUniColor(2, 0, 0, 8, 0x02);
+	VDP_SetSpriteExUniColor(3, 0, 0, 12, VDP_SPRITE_CC + 0x01);
+	VDP_SetSpriteExUniColor(4, 0, 0, 16, 0x02);
+	VDP_SetSpriteExUniColor(5, 0, 0, 20, VDP_SPRITE_CC + 0x01);
+	VDP_SetSpriteExUniColor(6, 0, 0, 24, 0x02);
+	VDP_SetSpriteExUniColor(7, 0, 0, 28, VDP_SPRITE_CC + 0x01);
+
+	// rabbit
+
 	VDP_HideSpriteFrom(8);
 
 	// Compute transformed sprite data

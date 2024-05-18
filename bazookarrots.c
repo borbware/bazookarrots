@@ -37,7 +37,7 @@ typedef struct
 typedef struct
 {
     u8 type; // 0 = Nothing, 1 = Carrot
-	VectorU8 pos;
+	VectorI16 pos;
 } Target;
 
 #define RABBIT_SIZE 16
@@ -47,15 +47,15 @@ typedef struct
 	u8 state; // 0 = Inactive, 1 = Running to target, 2 = Eating, 3 = Hit
 	u8 actionTimer; // If not zero, do not change state
     u8 target; // Index in target list
-	VectorU8 pos;
+	VectorI16 pos;
 } Rabbit;
 
 #define BULLET_SIZE 16
 typedef struct 
 {
 	u8 state; // 0 = Inactive, 1 = Moving
-    VectorU8 vel; // Direction and speed
-	VectorU8 pos;
+    VectorI16 vel; // Direction and speed
+	VectorI16 pos;
 } Bullet;
 
 #define PLAYER_SIZE 16
@@ -63,8 +63,8 @@ typedef struct
 typedef struct 
 {
 	u8 state; // 0 = Inactive, 1 = Moving
-    VectorU8 vel; // Direction and speed
-	VectorU8 pos;
+    VectorI16 vel; // Direction and speed
+	VectorI16 pos;
 	u8 carrots;
 } Player;
 
@@ -83,8 +83,8 @@ void Init8();
 void Update8();
 void InitGameData();
 void UpdateGame();
-bool CheckBoxCollision(VectorU8* posA, VectorU8* posB, u8 sizeA, u8 sizeB);
-bool InInBounds(VectorU8* pos);
+bool CheckBoxCollision(VectorI16* posA, VectorI16* posB, u8 sizeA, u8 sizeB);
+bool InInBounds(VectorI16* pos, u8 size);
 
 void SpriteFX_FlipVertical8(const u8* src, u8* dest);
 void SpriteFX_FlipHorizontal8(const u8* src, u8* dest);
@@ -218,7 +218,7 @@ void UpdateGame()
 			}
 
 			// Are we out of bounds?
-			if(!InInBounds(&bullets[i].pos))
+			if(!InInBounds(&bullets[i].pos, BULLET_SIZE))
 			{
 				bullets[i].state == 0;
 				// Out of bounds!
@@ -290,7 +290,7 @@ void UpdateGame()
 
 // Pos is top right corner
 // Return true if collision occures
-bool CheckBoxCollision(VectorU8* posA, VectorU8* posB, u8 sizeA, u8 sizeB)
+bool CheckBoxCollision(VectorI16* posA, VectorI16* posB, u8 sizeA, u8 sizeB)
 {
 	return
 	  (posA->x < posB->x + sizeB
@@ -301,13 +301,13 @@ bool CheckBoxCollision(VectorU8* posA, VectorU8* posB, u8 sizeA, u8 sizeB)
 
 // Is the position on the screen
 // TODO: Maybe take size into account here?
-bool InInBounds(VectorU8* pos)
+bool InInBounds(VectorI16* pos, u8 size)
 {
 	return
-	  (pos->x > 0
+	  (pos->x > 0 - size
 	&& pos->x < 256
 	&& pos->y < 211
-	&& pos->y > 0);
+	&& pos->y > 0 - size);
 }
 
 //=============================================================================

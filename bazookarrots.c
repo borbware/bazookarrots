@@ -594,17 +594,25 @@ void Update16()
 		if(bullets[i].state == 1)
 		{
 			u8 rot = (g_Frame >> 4) % 4;
-			VDP_SetSpritePosition(2 + i, bullets[i].pos.x, bullets[i].pos.y);
-			VDP_SetSpritePosition(3 + i, bullets[i].pos.x, bullets[i].pos.y);
+			VDP_SetSprite(2 + i, bullets[i].pos.x, bullets[i].pos.y, 8 + i * 4);
+			VDP_SetSprite(3 + i, bullets[i].pos.x, bullets[i].pos.y, 12 + i * 4);
+			//VDP_SetSpritePosition(2 + i, bullets[i].pos.x, bullets[i].pos.y);
+			//VDP_SetSpritePosition(3 + i, bullets[i].pos.x, bullets[i].pos.y);
 			VDP_LoadSpritePattern(g_RotAnim[rot] + pat, (2 + i) * 4, 4);
 			VDP_LoadSpritePattern(g_RotAnim[rot] + pat + (24 * 8), (3 + i) * 4, 4);
+			//VDP_LoadSpritePattern(pat1, 8 + i * 4, 4);
+			//VDP_LoadSpritePattern(pat2, 12 + i * 4, 4);
+		}
+		else
+		{
+			VDP_HideSprite(2 + i);
+			VDP_HideSprite(3 + i);
 		}
 	}
 
 	// Draw UI
 	Print_DrawTextAt(1, 1, "TIME");
 	Print_DrawIntAt(8, 1, timeLeft);
-
 
 	// if(Keyboard_IsKeyPressed(KEY_SPACE))
 	// 	FSM_SetState(&g_State8);

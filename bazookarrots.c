@@ -79,8 +79,7 @@ Player player;
 // Function prototypes
 void Init16();
 void Update16();
-void Init8();
-void Update8();
+
 void InitGameData();
 void UpdateGame();
 bool CheckBoxCollision(VectorI16* posA, VectorI16* posB, u8 sizeA, u8 sizeB);

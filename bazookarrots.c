@@ -289,7 +289,7 @@ void UpdateGame()
 			if(rabbits[i].state == 0) // Active inactive rabbit
 			{
 				rabbits[i].state = 1;
-				rabbits[i].target = 0; // TODO: Make this random from targets
+				rabbits[i].target = Math_GetRandomRange8(0, TARGET_COUNT);
 				// TODO: Play walk animation
 			}
 			else if(rabbits[i].state == 1) // Run towards current target
@@ -305,9 +305,9 @@ void UpdateGame()
 				{
 					rabbits[i].pos.x -= RABBIT_SPEED;
 				}
-				else if(tempY < rabbits[i].pos.y)
+				if(tempY > rabbits[i].pos.y)
 				{
-					rabbits[i].pos.y -= RABBIT_SPEED;
+					rabbits[i].pos.y += RABBIT_SPEED;
 				}
 				else if(tempY < rabbits[i].pos.y)
 				{
@@ -360,8 +360,8 @@ void UpdateGame()
 void MoveRabbitToSpawn(u8 index)
 {
 	rabbits[index].state = 0;
-	rabbits[index].pos.x = Math_GetRandomRange8(10, 250);
-	rabbits[index].pos.y = 211;
+	rabbits[index].pos.x = Math_GetRandomRange8(10, 240);
+	rabbits[index].pos.y = 200;
 }
 
 // Pos is top left corner

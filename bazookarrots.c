@@ -500,15 +500,12 @@ void CheckShootInputAndMaybeShoot()
 
 void InitGameOver()
 {
-	// VDP_SetMode(VDP_MODE_SCREEN4);
-	VDP_SetColor(COLOR_BLACK);
-	VDP_ClearVRAM();
-
-	// Setup print
-	Print_SetTextFont(g_Font_MGL_Sample8, 0);
+	for(u8 i = 0; i < 16; ++i)
+		VDP_SetPaletteEntry(i, RGB16(0, 0, 0));
+	VDP_SetPaletteEntry(COLOR_WHITE, RGB16(7, 7, 7));
 	Print_SetColor(COLOR_WHITE, COLOR_BLACK);
-
-	Print_DrawTextAt(10, 10, "GAME OVER");	
+	Print_SetPosition(80, 80);
+	Print_DrawText("GAME OVER");
 }
 
 void UpdateGameOver()
@@ -555,8 +552,8 @@ void InitDraw()
 	Tile_FillBank(3, 9);
 	Tile_LoadBank(0, g_DataBG4b, sizeof(g_DataBG4b) / TILE_CELL_BYTES);
 	Tile_LoadBank(2, g_DataBG4b, sizeof(g_DataBG4b) / TILE_CELL_BYTES);
-	//for(u8 i = 0; i < 15; ++i)
-	//	VDP_SetPaletteEntry(i + 1, *(u16*)&g_DataBG4b_palette[i*2]);
+	for(u8 i = 0; i < 15; ++i)
+		VDP_SetPaletteEntry(i + 1, *(u16*)&g_DataBG4b_palette[i*2]);
 
 	// Draw level
 	Tile_SetDrawPage(0);

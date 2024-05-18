@@ -253,6 +253,11 @@ void UpdateGame()
 	}
 	CheckShootInputAndMaybeShoot();
 
+	// Clamp player to play area
+	player.pos.x = Clamp16(player.pos.x, 0, TILE_SCREEN_WIDTH - PLAYER_SIZE);
+	player.pos.y = Clamp16(player.pos.y, 32, TILE_SCREEN_HEIGHT - 40);
+
+	// Update bullets
 	for(i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
 	{
 		if(bullets[i].state == 1)

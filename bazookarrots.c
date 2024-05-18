@@ -81,18 +81,12 @@ Player player;
 // Function prototypes
 void Init16();
 void Update16();
-void Init8();
-void Update8();
+
 void InitGameData();
 void UpdateGame();
 bool CheckBoxCollision(VectorI16* posA, VectorI16* posB, u8 sizeA, u8 sizeB);
 bool InInBounds(VectorI16* pos, u8 size);
 
-void SpriteFX_FlipVertical8(const u8* src, u8* dest);
-void SpriteFX_FlipHorizontal8(const u8* src, u8* dest);
-void SpriteFX_RotateRight8(const u8* src, u8* dest);
-void SpriteFX_RotateLeft8(const u8* src, u8* dest);
-void SpriteFX_RotateHalfTurn8(const u8* src, u8* dest);
 
 //=============================================================================
 // READ-ONLY DATA
@@ -107,23 +101,12 @@ void SpriteFX_RotateHalfTurn8(const u8* src, u8* dest);
 
 // Character animation
 const u8 g_CharAnim[] = { '|', '\\', '-', '/' };
-
 //
 const u8* g_RotAnim[] = { g_PatternData, g_PatternDataRotLeft, g_PatternDataRotHalf, g_PatternDataRotRight };
 
 // states
 const FSM_State g_State16 = { 0, Init16, Update16, NULL };
-
-//
-const EffectInfo g_Effect[] =
-{
-	{ "None",            NULL },
-	{ "Flip Vertical",   SpriteFX_FlipVertical8 },
-	{ "Flip Horizontal", SpriteFX_FlipHorizontal8 },
-	{ "Rotate Right",    SpriteFX_RotateRight8 },
-	{ "Rotate Left",     SpriteFX_RotateLeft8 },
-	{ "Rotate 180",      SpriteFX_RotateHalfTurn8 },
-};
+const FSM_State g_StateGame = {1, InitGameData, UpdateGame, NULL};
 
 //=============================================================================
 // MEMORY DATA
@@ -164,6 +147,7 @@ u8 tempY;
 
 void InitGameData()
 {
+	Init16();
 	for(i = 0; i < TARGET_COUNT; ++i)
 	{
 		targets[i].type = 0;
@@ -326,6 +310,7 @@ void UpdateGame()
 			rabbits[i].actionTimer--;
 		}
 	}
+	Update16();
 }
 
 // Pos is top left corner
@@ -369,17 +354,6 @@ void WaitVBlank()
 	g_VBlank = 0;
 	g_Frame++;
 }
-
-//-----------------------------------------------------------------------------
-// Fill sprite pattern
-void VDP_FillSpritePattern(u8 val, u8 index, u8 count)
-{
-	u16 low = g_SpritePatternLow;
-	low += (index * 8);
-	VDP_FillVRAM(val, low, g_SpritePatternHigh, count * 8);
-}
-
-
 
 //-----------------------------------------------------------------------------
 void Init16()
@@ -501,8 +475,10 @@ void Update16()
 
 	// Flip horizontal
 	g_PosX1--;
-	VDP_SetSpritePositionX(2, g_PosX1);
-	VDP_SetSpritePositionX(3, g_PosX1);
+	VDP_SetSpritePositionX(2, player.pos.x);
+	VDP_SetSpritePositionY(2, player.pos.y);
+	VDP_SetSpritePositionX(3, player.pos.x);
+	VDP_SetSpritePositionY(3, player.pos.y);
 	pat1 = g_PatternData + pat;
 	pat2 = g_PatternData + pat + 24 * 8;
 	if(bToggle)
@@ -528,16 +504,6 @@ void Update16()
 }
 
 //-----------------------------------------------------------------------------
-//
-void SetFX(u8 id)
-{
-	g_FXIndex = id;
-	Print_DrawCharXAt(0, 3, '\0', 32);
-	Print_DrawTextAt(0, 3, "Effect: ");
-	Print_DrawText(g_Effect[g_FXIndex].Name);
-}
-
-//-----------------------------------------------------------------------------
 // Program entry point
 void main()
 {
@@ -545,7 +511,7 @@ void main()
 	Bios_SetKeyClick(FALSE);
 	Bios_SetHookCallback(H_TIMI, VBlankHook);
 
-	FSM_SetState(&g_State16);
+	FSM_SetState(&g_StateGame);
 
 	bool bContinue = TRUE;
 	while(bContinue)

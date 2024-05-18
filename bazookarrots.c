@@ -32,9 +32,59 @@ typedef struct
 	fxFunc    Func;
 } EffectInfo;
 
+// Game structs
+#define TARGET_SIZE 16
+typedef struct
+{
+    u8 type; // 0 = Nothing, 1 = Carrot
+	VectorI16 pos;
+} Target;
+
+#define RABBIT_SIZE 16
+#define RABBIT_SPEED 1
+typedef struct 
+{
+	u8 state; // 0 = Inactive, 1 = Running to target, 2 = Eating, 3 = Hit
+	u8 actionTimer; // If not zero, do not change state
+    u8 target; // Index in target list
+	VectorI16 pos;
+} Rabbit;
+
+#define BULLET_SIZE 16
+typedef struct 
+{
+	u8 state; // 0 = Inactive, 1 = Moving
+    VectorI16 vel; // Direction and speed
+	VectorI16 pos;
+} Bullet;
+
+#define PLAYER_SIZE 16
+#define MAX_CARROTS_IN_CARRY 3
+typedef struct 
+{
+	u8 state; // 0 = Inactive, 1 = Moving
+    VectorI16 vel; // Direction and speed
+	VectorI16 pos;
+	u8 carrots;
+} Player;
+
+// Game data
+#define TARGET_COUNT 4
+#define RABBIT_COUNT 2
+Target targets[TARGET_COUNT];
+Rabbit rabbits[RABBIT_COUNT];
+Bullet bullets[MAX_CARROTS_IN_CARRY];
+Player player;
+
 // Function prototypes
 void Init16();
 void Update16();
+void Init8();
+void Update8();
+void InitGameData();
+void UpdateGame();
+bool CheckBoxCollision(VectorI16* posA, VectorI16* posB, u8 sizeA, u8 sizeB);
+bool InInBounds(VectorI16* pos, u8 size);
 
 
 //=============================================================================
@@ -82,6 +132,166 @@ u8 g_PosX1;
 
 //
 u8 g_FXIndex;
+
+u8 i;
+u8 j;
+u8 k;
+u8 tempX;
+u8 tempY;
+
+//=============================================================================
+// GAME FUNCTIONS
+//=============================================================================
+
+void InitGameData()
+{
+	for(i = 0; i < TARGET_COUNT; ++i)
+	{
+		targets[i].type = 0;
+		targets[i].pos.x = 10 + 5 * i;
+		targets[i].pos.y = 10;
+	}
+
+	for(i = 0; i < RABBIT_COUNT; ++i)
+	{
+		targets[i].type = 0;
+		targets[i].pos.x = 0;
+		targets[i].pos.y = 200;
+	}
+
+	for(i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
+	{
+		bullets[i].state = 0;
+		bullets[i].pos.x = 0;
+		bullets[i].pos.y = 0;
+		bullets[i].vel.x = 0;
+		bullets[i].vel.y = 0;
+	}
+
+	player.state = 1;
+	player.pos.x = 20;
+	player.pos.y = 40;
+	player.vel.x = 0;
+	player.vel.y = 0;
+}
+
+void UpdateGame()
+{
+	// Update rabbits
+	// Update player
+	// Update bullets
+	// Update UI
+
+	for(i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
+	{
+		if(bullets[i].state == 1)
+		{
+			// Move bullet
+			bullets[i].pos.x += bullets[i].vel.x;
+			bullets[i].pos.y += bullets[i].vel.y;
+
+			// Did we hit a rabbit?
+			for(j = 0; j < RABBIT_COUNT; ++j)
+			{
+				if(CheckBoxCollision(&bullets[i].pos, &rabbits[j].pos, BULLET_SIZE, RABBIT_SIZE))
+				{
+					bullets[i].state == 0;
+					// Rabbit is hit with a bullet!
+				}
+			}
+
+			// Are we out of bounds?
+			if(!InInBounds(&bullets[i].pos, BULLET_SIZE))
+			{
+				bullets[i].state == 0;
+				// Out of bounds!
+			}
+		}
+	}
+
+	for(i = 0; i < RABBIT_COUNT; ++i)
+	{
+		if(rabbits[i].actionTimer == 0)
+		{
+			if(rabbits[i].state == 0) // Active inactive rabbit
+			{
+				rabbits[i].state = 1;
+				rabbits[i].target = 0; // TODO: Make this random from targets
+				// TODO: Play walk animation
+			}
+			else if(rabbits[i].state == 1) // Run towards current target
+			{
+				// Move rabbit
+				tempX = targets[rabbits[i].target].pos.x;
+				tempY = targets[rabbits[i].target].pos.y;
+				if(tempX > rabbits[i].pos.x)
+				{
+					rabbits[i].pos.x += RABBIT_SPEED;
+				}
+				else if(tempX < rabbits[i].pos.x)
+				{
+					rabbits[i].pos.x -= RABBIT_SPEED;
+				}
+				else if(tempY < rabbits[i].pos.y)
+				{
+					rabbits[i].pos.y -= RABBIT_SPEED;
+				}
+				else if(tempY < rabbits[i].pos.y)
+				{
+					rabbits[i].pos.y -= RABBIT_SPEED;
+				}
+
+				// Are we at the target?
+				if(CheckBoxCollision(&rabbits[i].pos, &targets[rabbits[i].target].pos, RABBIT_SIZE, TARGET_SIZE))
+				{
+					if(targets[rabbits[i].target].type == 1)
+					{
+						rabbits[i].state == 2; // Eat target
+						rabbits[i].actionTimer = 60;
+						// TODO: Play eat sound
+						// TODO: Play eat animation
+					}
+					else
+					{
+						rabbits[i].state == 0; // Get a new target
+						rabbits[i].actionTimer = 30;
+					}
+				}
+			}
+			else if(rabbits[i].state == 2) // Eating, do nothing
+			{
+
+			}
+		}
+		else
+		{
+			// Decrease action timer, when it hits zero rabbit will continue update again
+			rabbits[i].actionTimer--;
+		}
+	}
+}
+
+// Pos is top right corner
+// Return true if collision occures
+bool CheckBoxCollision(VectorI16* posA, VectorI16* posB, u8 sizeA, u8 sizeB)
+{
+	return
+	  (posA->x < posB->x + sizeB
+	&& posA->x + sizeA > posB->x
+	&& posA->y < posB->y + sizeB
+	&& posA->y + sizeA > posB->y);
+}
+
+// Is the position on the screen
+// TODO: Maybe take size into account here?
+bool InInBounds(VectorI16* pos, u8 size)
+{
+	return
+	  (pos->x > 0 - size
+	&& pos->x < 256
+	&& pos->y < 211
+	&& pos->y > 0 - size);
+}
 
 //=============================================================================
 // HELPER FUNCTIONS

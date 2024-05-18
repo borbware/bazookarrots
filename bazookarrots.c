@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "fsm.h"
 #include "sprite_fx.h"
+#include "math.h"
 
 //=============================================================================
 // DEFINES
@@ -45,12 +46,13 @@ typedef struct
 typedef struct 
 {
 	u8 state; // 0 = Inactive, 1 = Running to target, 2 = Eating, 3 = Hit
-	u8 actionTimer; // If not zero, do not change state
+	u16 actionTimer; // If not zero, do not change state
     u8 target; // Index in target list
 	VectorI16 pos;
 } Rabbit;
 
 #define BULLET_SIZE 16
+#define BULLET_SIZE_HALF 8
 #define BULLET_SPEED 2;
 typedef struct 
 {
@@ -90,6 +92,7 @@ void UpdateGame();
 bool CheckBoxCollision(VectorI16* posA, VectorI16* posB, u8 sizeA, u8 sizeB);
 bool InInBounds(VectorI16* pos, u8 size);
 void CheckShootInputAndMaybeShoot();
+void MoveRabbitToSpawn(u8 index);
 
 //=============================================================================
 // READ-ONLY DATA
@@ -156,9 +159,9 @@ void InitGameData()
 
 	for(i = 0; i < RABBIT_COUNT; ++i)
 	{
-		targets[i].type = 0;
-		targets[i].pos.x = 0;
-		targets[i].pos.y = 200;
+		MoveRabbitToSpawn(i);
+		rabbits[i].state = 0;
+		rabbits[i].actionTimer = i * 60;
 	}
 
 	for(i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
@@ -190,7 +193,6 @@ void UpdateGame()
 		player.pos.x += PLAYER_SPEED_DIAGONAL;
 		player.dir = 1;
 		player.flipHorizontal = false;
-		CheckShootInputAndMaybeShoot();
 	}
 	else if(Keyboard_IsKeyPressed(KEY_UP) && Keyboard_IsKeyPressed(KEY_LEFT))
 	{
@@ -198,7 +200,6 @@ void UpdateGame()
 		player.pos.x -= PLAYER_SPEED_DIAGONAL;
 		player.dir = 7;
 		player.flipHorizontal = true;
-		CheckShootInputAndMaybeShoot();
 	}
 	else if(Keyboard_IsKeyPressed(KEY_DOWN) && Keyboard_IsKeyPressed(KEY_RIGHT))
 	{
@@ -206,7 +207,6 @@ void UpdateGame()
 		player.pos.x += PLAYER_SPEED_DIAGONAL;
 		player.dir = 3;
 		player.flipHorizontal = false;
-		CheckShootInputAndMaybeShoot();
 	}
 	else if(Keyboard_IsKeyPressed(KEY_DOWN) && Keyboard_IsKeyPressed(KEY_LEFT))
 	{
@@ -214,39 +214,34 @@ void UpdateGame()
 		player.pos.x -= PLAYER_SPEED_DIAGONAL;
 		player.dir = 5;
 		player.flipHorizontal = true;
-		CheckShootInputAndMaybeShoot();
 	}
 	else if(Keyboard_IsKeyPressed(KEY_UP))
 	{
 		player.pos.y -= PLAYER_SPEED;
 		player.dir = 0;
-		CheckShootInputAndMaybeShoot();
 	}
 	else if(Keyboard_IsKeyPressed(KEY_DOWN))
 	{
 		player.pos.y += PLAYER_SPEED;
 		player.dir = 4;
-		CheckShootInputAndMaybeShoot();
 	}
 	else if(Keyboard_IsKeyPressed(KEY_RIGHT))
 	{
 		player.pos.x += PLAYER_SPEED;
 		player.flipHorizontal = false;
 		player.dir = 2;
-		CheckShootInputAndMaybeShoot();
 	}
 	else if(Keyboard_IsKeyPressed(KEY_LEFT))
 	{
 		player.dir = 6;
 		player.pos.x -= PLAYER_SPEED;
 		player.flipHorizontal = true;
-		CheckShootInputAndMaybeShoot();
 	}
 	else
 	{
 		// TODO: Stop player walk
-		CheckShootInputAndMaybeShoot();
 	}
+	CheckShootInputAndMaybeShoot();
 
 	for(i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
 	{
@@ -263,17 +258,18 @@ void UpdateGame()
 				{
 					if(CheckBoxCollision(&bullets[i].pos, &rabbits[j].pos, BULLET_SIZE, RABBIT_SIZE))
 					{
-						bullets[i].state == 0;
 						// Rabbit is hit with a bullet!
+						bullets[i].state == 0;
+						rabbits[i].state = 3;
+						rabbits[i].actionTimer = i * 120;
 					}
 				}
 			}
 
 			// Are we out of bounds?
-			if(!InInBounds(&bullets[i].pos, BULLET_SIZE))
+			if(!InInBounds(&bullets[i].pos, BULLET_SIZE_HALF))
 			{
-				bullets[i].state == 0;
-				// Out of bounds!
+				bullets[i].state = 0;
 			}
 		}
 	}
@@ -327,9 +323,14 @@ void UpdateGame()
 					}
 				}
 			}
-			else if(rabbits[i].state == 2) // Eating, do nothing
+			else if(rabbits[i].state == 2) // Eating, get new target
 			{
-
+				rabbits[i].state == 0;
+			}
+			else if(rabbits[i].state == 3) // Dead rabbit, respawn
+			{
+				MoveRabbitToSpawn(i);
+				rabbits[i].state == 0;
 			}
 		}
 		else
@@ -339,6 +340,13 @@ void UpdateGame()
 		}
 	}
 	Update16();
+}
+
+void MoveRabbitToSpawn(u8 index)
+{
+	rabbits[index].state = 0;
+	rabbits[index].pos.x = Math_GetRandomRange8(10, 250);
+	rabbits[index].pos.y = 211;
 }
 
 // Pos is top left corner
@@ -357,10 +365,10 @@ bool CheckBoxCollision(VectorI16* posA, VectorI16* posB, u8 sizeA, u8 sizeB)
 bool InInBounds(VectorI16* pos, u8 size)
 {
 	return
-	  (pos->x > 0 - size
-	&& pos->x < 256
-	&& pos->y < 211
-	&& pos->y > 0 - size);
+	  (pos->x > -size
+	&& pos->x < (256 + size)
+	&& pos->y < (211 + size)
+	&& pos->y > -size);
 }
 
 void CheckShootInputAndMaybeShoot()
@@ -397,12 +405,12 @@ void CheckShootInputAndMaybeShoot()
 				else if(player.dir == 4)
 				{
 					bullets[i].vel.x = 0;
-					bullets[i].vel.y = -BULLET_SPEED;
+					bullets[i].vel.y = BULLET_SPEED;
 				}
 				else if(player.dir == 5)
 				{
 					bullets[i].vel.x = -BULLET_SPEED;
-					bullets[i].vel.y = -BULLET_SPEED;
+					bullets[i].vel.y = BULLET_SPEED;
 				}
 				else if(player.dir == 6)
 				{
@@ -412,7 +420,7 @@ void CheckShootInputAndMaybeShoot()
 				else if(player.dir == 7)
 				{
 					bullets[i].vel.x = -BULLET_SPEED;
-					bullets[i].vel.y = BULLET_SPEED;
+					bullets[i].vel.y = -BULLET_SPEED;
 				}
 
 				break;

@@ -126,6 +126,7 @@ void UpdateCarrotUI();
 #include "gfx/carrot_ground.h"
 #include "gfx/rabbit.h"
 #include "gfx/rabbit_dies.h"
+#include "gfx/rabbit_eats2.h"
 #include "gfx/player.h"
 
 // Fonts
@@ -202,6 +203,7 @@ u8 g_CarrotSpriteDataRotHalf[1 * 2 * 4 * 8];
 
 u8 g_RabbitSpriteData[RABBIT_ANIMATION_FRAMES * 2 * 4 * 8];
 u8 g_RabbitDiesSpriteData[RABBIT_ANIMATION_FRAMES * 2 * 4 * 8];
+u8 g_RabbitEatsSpriteData[RABBIT_ANIMATION_FRAMES * 2 * 4 * 8];
 
 // Sprite buffer
 u8 g_Buffer1[32];
@@ -749,6 +751,7 @@ void InitDraw()
 	RearrangeSprites(g_carrot, g_CarrotSpriteData, 1);
 	RearrangeSprites(g_rabbit, g_RabbitSpriteData, RABBIT_ANIMATION_FRAMES);
 	RearrangeSprites(g_rabbit_dies, g_RabbitDiesSpriteData, RABBIT_ANIMATION_FRAMES);
+	RearrangeSprites(g_rabbit_eats2, g_RabbitEatsSpriteData, RABBIT_ANIMATION_FRAMES);
 	RearrangeSprites(g_player, g_PlayerSpriteData, PLAYER_ANIMATION_FRAMES);
 
 	// Initialize 16x16 OR sprites
@@ -792,6 +795,15 @@ void InitDraw()
 		VDP_SetSpriteExUniColor(rabbit_index + 1 + i, 0, 0,               (rabbit_index + 1 + i) * 4, VDP_SPRITE_CC + 0x01);
 		VDP_LoadSpritePattern(g_RabbitDiesSpriteData,                                   (rabbit_index + i) * 4, 4);
 		VDP_LoadSpritePattern(g_RabbitDiesSpriteData + 4 * RABBIT_ANIMATION_FRAMES * 8, (rabbit_index + 1 + i) * 4, 4);
+	}
+	// rabbit eats
+	rabbit_index = rabbit_index + RABBIT_COUNT * 2;
+	for (i = 0; i < RABBIT_COUNT; ++i )
+	{
+		VDP_SetSpriteExUniColor(rabbit_index + i,     0, 0,               (rabbit_index + i) * 4, 0x04);
+		VDP_SetSpriteExUniColor(rabbit_index + 1 + i, 0, 0,               (rabbit_index + 1 + i) * 4, VDP_SPRITE_CC + 0x01);
+		VDP_LoadSpritePattern(g_RabbitEatsSpriteData,                                   (rabbit_index + i) * 4, 4);
+		VDP_LoadSpritePattern(g_RabbitEatsSpriteData + 4 * RABBIT_ANIMATION_FRAMES * 8, (rabbit_index + 1 + i) * 4, 4);
 	}
 
 
@@ -851,10 +863,15 @@ void UpdateDraw()
 
 	for (i = 0; i < RABBIT_COUNT; ++i )
 	{
-		if (rabbits[i].state == 3)
+		if (rabbits[i].state == 3) // dies
 		{
 			pat1 = g_RabbitDiesSpriteData + pat;
 			pat2 = g_RabbitDiesSpriteData + pat + RABBIT_ANIMATION_FRAMES * 4 * 8;
+		}
+		else if (rabbits[i].state == 1) // eats
+		{
+			pat1 = g_RabbitEatsSpriteData + pat;
+			pat2 = g_RabbitEatsSpriteData + pat + RABBIT_ANIMATION_FRAMES * 4 * 8;
 		}
 
 		VDP_SetSpritePosition(14 + i, rabbits[i].pos.x, rabbits[i].pos.y);

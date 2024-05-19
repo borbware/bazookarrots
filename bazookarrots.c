@@ -1089,7 +1089,7 @@ void main()
 
 		if(g_Freq50Hz || (frameCount % 6) != 0)
 		{
-			// g_CurrentPlayer->Decode(); // hajottaa pelin
+			g_CurrentPlayer->Decode(); // hajottaa pelin
 		}
 		// Increment frame counter and dispaly the sign-of-life
 		frameCount++;

@@ -451,7 +451,7 @@ void UpdateGame()
 					// If target is carrot eat it, if not wait (in both cases, get a new target after anim/wait)
 					if(targets[rabbits[i].target].type == 1)
 					{
-						rabbits[i].state == 2; // Eat target
+						rabbits[i].state = 2; // Eat target
 						rabbits[i].actionTimer = 60;
 						targets[rabbits[i].target].type = 0;
 						targets[rabbits[i].target].growTimer = GetCarrotGrowTime();
@@ -461,7 +461,7 @@ void UpdateGame()
 					}
 					else
 					{
-						rabbits[i].state == 0; // Get a new target
+						rabbits[i].state = 0; // Get a new target
 						rabbits[i].actionTimer = 30;
 					}
 				}
@@ -473,12 +473,12 @@ void UpdateGame()
 			}
 			else if(rabbits[i].state == 2) // Eating, get new target
 			{
-				rabbits[i].state == 0;
+				rabbits[i].state = 0;
 			}
 			else if(rabbits[i].state == 3) // Dead rabbit, respawn
 			{
 				MoveRabbitToSpawn(i);
-				rabbits[i].state == 0;
+				rabbits[i].state = 0;
 			}
 		}
 	}
@@ -869,7 +869,7 @@ void UpdateDraw()
 			pat1 = g_RabbitDiesSpriteData + pat;
 			pat2 = g_RabbitDiesSpriteData + pat + RABBIT_ANIMATION_FRAMES * 4 * 8;
 		}
-		else if (rabbits[i].state == 1) // eats
+		else if (rabbits[i].state == 2) // eats
 		{
 			pat1 = g_RabbitEatsSpriteData + pat;
 			pat2 = g_RabbitEatsSpriteData + pat + RABBIT_ANIMATION_FRAMES * 4 * 8;

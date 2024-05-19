@@ -602,19 +602,26 @@ void CheckShootInputAndMaybeShoot()
 
 void InitGameOver()
 {
+	VDP_HideAllSprites();
 	for(u8 i = 0; i < 16; ++i)
 		VDP_SetPaletteEntry(i, RGB16(0, 0, 0));
 	VDP_SetPaletteEntry(COLOR_WHITE, RGB16(7, 7, 7));
 	Print_SetColor(COLOR_WHITE, COLOR_BLACK);
 	Print_SetPosition(80, 80);
 	Print_DrawText("GAME OVER");
+	Print_SetPosition(80, 90);
+	Print_DrawText("SCORE");
+	Print_SetPosition(80, 100);
+	Print_DrawInt(score);
 }
 
 void UpdateGameOver()
 {
-	
+	if(Keyboard_IsKeyPushed(KEY_SPACE))
+	{
+		FSM_SetState(&g_StateGame);
+	}
 }
-
 
 //=============================================================================
 // HELPER FUNCTIONS
@@ -732,6 +739,7 @@ void InitDraw()
 	// Setup sprite
 	VDP_EnableSprite(TRUE);
 	VDP_SetSpriteFlag(VDP_SPRITE_SIZE_16);
+	VDP_HideSpriteFrom(8);
 
 	// Load sprites in correct order to memory
 	RearrangeSprites(g_DataSprt16or, g_PatternData, 6);
@@ -772,8 +780,6 @@ void InitDraw()
 		VDP_LoadSpritePattern(g_RabbitSpriteData,                                   (rabbit_index + i) * 4, 4);
 		VDP_LoadSpritePattern(g_RabbitSpriteData + 4 * RABBIT_ANIMATION_FRAMES * 8, (rabbit_index + 1 + i) * 4, 4);
 	}
-
-	VDP_HideSpriteFrom(8);
 
 	// Compute transformed sprite data
 	loop(i, 6 * 2)

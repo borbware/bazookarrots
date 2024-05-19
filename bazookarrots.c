@@ -131,6 +131,7 @@ void UpdateCarrotUI();
 
 // Character animation
 const u8* g_RotAnim[] = { g_PatternData, g_PatternDataRotLeft, g_PatternDataRotHalf, g_PatternDataRotRight };
+const u8* g_CarRotAnim[] = { g_CarrotSpriteData, g_CarrotSpriteDataRotLeft, g_CarrotSpriteDataRotHalf, g_CarrotSpriteDataRotRight };
 
 // states
 const FSM_State g_StateGame = {1, InitGameData, UpdateGame, NULL};
@@ -197,7 +198,12 @@ u8 g_PatternDataRotLeft[PATTERN_16_NUM * 8];
 u8 g_PatternDataRotHalf[PATTERN_16_NUM * 8];
 
 u8 g_PlayerSpriteData[PLAYER_ANIMATION_FRAMES * 2 * 4 * 8];
+
 u8 g_CarrotSpriteData[1 * 2 * 4 * 8];
+u8 g_CarrotSpriteDataRotRight[1 * 2 * 4 * 8];
+u8 g_CarrotSpriteDataRotLeft[1 * 2 * 4 * 8];
+u8 g_CarrotSpriteDataRotHalf[1 * 2 * 4 * 8];
+
 u8 g_RabbitSpriteData[RABBIT_ANIMATION_FRAMES * 2 * 4 * 8];
 
 // Sprite buffer
@@ -799,12 +805,20 @@ void InitDraw()
 	}
 
 	// Compute transformed sprite data
-	loop(i, 6 * 2)
+	// loop(i, 6 * 2)
+	// {
+	// 	u16 idx = i * 4 * 8;
+	// 	SpriteFX_RotateRight16(&g_PatternData[idx], &g_PatternDataRotRight[idx]);
+	// 	SpriteFX_RotateLeft16(&g_PatternData[idx], &g_PatternDataRotLeft[idx]);
+	// 	SpriteFX_RotateHalfTurn16(&g_PatternData[idx], &g_PatternDataRotHalf[idx]);
+	// }
+
+	loop(i, 1 * 2)
 	{
 		u16 idx = i * 4 * 8;
-		SpriteFX_RotateRight16(&g_PatternData[idx], &g_PatternDataRotRight[idx]);
-		SpriteFX_RotateLeft16(&g_PatternData[idx], &g_PatternDataRotLeft[idx]);
-		SpriteFX_RotateHalfTurn16(&g_PatternData[idx], &g_PatternDataRotHalf[idx]);
+		SpriteFX_RotateRight16(&g_CarrotSpriteData[idx], &g_CarrotSpriteDataRotRight[idx]);
+		SpriteFX_RotateLeft16(&g_CarrotSpriteData[idx], &g_CarrotSpriteDataRotLeft[idx]);
+		SpriteFX_RotateHalfTurn16(&g_CarrotSpriteData[idx], &g_CarrotSpriteDataRotHalf[idx]);
 	}
 
 	// VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (0*256*8), 32*4*8);
@@ -837,11 +851,6 @@ void UpdateDraw()
 		VDP_LoadSpritePattern(pat2, 4, 4);
 	}
 
-	// // Rotate 90°
-	// u8 rot = (g_Frame >> 4) % 4;
-	// VDP_LoadSpritePattern(g_RotAnim[rot] + pat, 24, 4);
-	// VDP_LoadSpritePattern(g_RotAnim[rot] + pat + (24 * 8), 28, 4);
-
 	frame = (g_Frame >> 2) % RABBIT_ANIMATION_FRAMES;
 	pat = (frame * 8 * 4);
 	pat1 = g_RabbitSpriteData + pat;
@@ -865,13 +874,9 @@ void UpdateDraw()
 			VDP_SetSpritePosition(8 + i, bullets[i].pos.x, bullets[i].pos.y);
 			VDP_SetSpritePosition(9 + i, bullets[i].pos.x, bullets[i].pos.y);
 			
-			// u8 rot = (g_Frame >> 4) % 4;
-			//VDP_SetSpritePosition(2 + i, bullets[i].pos.x, bullets[i].pos.y);
-			//VDP_SetSpritePosition(3 + i, bullets[i].pos.x, bullets[i].pos.y);
-			// VDP_LoadSpritePattern(g_RotAnim[rot] + pat, (2 + i) * 4, 4);
-			// VDP_LoadSpritePattern(g_RotAnim[rot] + pat + (24 * 8), (3 + i) * 4, 4);
-			//VDP_LoadSpritePattern(pat1, 8 + i * 4, 4);
-			//VDP_LoadSpritePattern(pat2, 12 + i * 4, 4);
+			u8 rot = (g_Frame >> 2) % 4;
+			VDP_LoadSpritePattern(g_CarRotAnim[rot], 		      (8 + i) * 4, 4);
+			VDP_LoadSpritePattern(g_CarRotAnim[rot] + 4 * 8, 	  (9 + i) * 4, 4);
 		}
 		else
 		{

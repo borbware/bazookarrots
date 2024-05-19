@@ -311,11 +311,6 @@ void InitGameData()
 
 void UpdateGame()
 {
-	// Update rabbits
-	// Update player
-	// Update bullets
-	// Update UI
-
 	if(Keyboard_IsKeyPressed(KEY_UP) && Keyboard_IsKeyPressed(KEY_RIGHT))
 	{
 		player.pos.y -= PLAYER_SPEED_DIAGONAL;
@@ -461,7 +456,6 @@ void UpdateGame()
 						targets[rabbits[i].target].type = 0;
 						targets[rabbits[i].target].growTimer = GetCarrotGrowTime();
 						Tile_DrawMapChunk(targets[rabbits[i].target].tilePos.x, targets[rabbits[i].target].tilePos.y, g_CarrotMapEmpty, 2, 2);
-						rabbits[i].target = Math_GetRandomRange8(0, TARGET_COUNT); // WTF, why does this help?
 						// TODO: Play eat sound
 						// TODO: Play eat animation
 					}
@@ -565,7 +559,6 @@ bool CheckBoxCollision(VectorI16* posA, VectorI16* posB, u8 sizeA, u8 sizeB)
 }
 
 // Is the position on the screen
-// TODO: Maybe take size into account here?
 bool InInBounds(VectorI16* pos, u8 size)
 {
 	return
@@ -739,31 +732,7 @@ void InitDraw()
 	Tile_SetDrawPage(0);
 	Tile_SelectBank(0);
 	Tile_FillScreen(6);
-	//Tile_DrawMapChunk( 0, 15, g_TreeTileMap, 6, 6); // Draw tree tilemap
-	//Tile_DrawMapChunk( 3, 15, g_TreeTileMap, 6, 6);
-	//Tile_DrawMapChunk(11, 15, g_TreeTileMap, 6, 6);
-	Tile_DrawScreen(g_TileMap); // Draw the whole screen tilemap
-	//Tile_DrawBlock(10, 8, 4, 4, 4, 2); // Draw a cloud (4x2 tiles)
-
-	//Tile_DrawMapChunk(10, 10, g_CarrotMap, 2, 2);
-	//Tile_DrawMapChunk(10, 13, g_CarrotMap, 2, 2);
-	//Tile_DrawMapChunk(10, 16, g_CarrotMap, 2, 2);
-	//Tile_DrawMapChunk(10, 19, g_CarrotMap, 2, 2);
-//
-	//Tile_DrawMapChunk(13, 10, g_CarrotMap, 2, 2);
-	//Tile_DrawMapChunk(13, 13, g_CarrotMap, 2, 2);
-	//Tile_DrawMapChunk(13, 16, g_CarrotMap, 2, 2);
-	//Tile_DrawMapChunk(13, 19, g_CarrotMap, 2, 2);
-//
-	//Tile_DrawMapChunk(16, 10, g_CarrotMap, 2, 2);
-	//Tile_DrawMapChunk(16, 13, g_CarrotMap, 2, 2);
-	//Tile_DrawMapChunk(16, 16, g_CarrotMap, 2, 2);
-	//Tile_DrawMapChunk(16, 19, g_CarrotMap, 2, 2);
-//
-	//Tile_DrawMapChunk(19, 10, g_CarrotMap, 2, 2);
-	//Tile_DrawMapChunk(19, 13, g_CarrotMap, 2, 2);
-	//Tile_DrawMapChunk(19, 16, g_CarrotMap, 2, 2);
-	//Tile_DrawMapChunk(19, 19, g_CarrotMap, 2, 2);
+	Tile_DrawScreen(g_TileMap);
 
 	// Setup and draw UI
 	Print_SetBitmapFont(g_Font_MGL_Sample8);
@@ -898,15 +867,11 @@ void UpdateDraw()
 			VDP_HideSprite(9 + i);
 		}
 	}
-
-	// if(Keyboard_IsKeyPressed(KEY_SPACE))
-	// 	FSM_SetState(&g_State8);
 }
 
 
 void UpdateTimeUI()
 {
-	// Draw UI
 	Print_SetPosition(40, 4);
 	Print_DrawInt(timeLeft);
 }
@@ -953,21 +918,12 @@ void main()
 	while(bContinue)
 	{
 		Keyboard_Update();
-		// VDP_SetColor(COLOR_DARK_BLUE);
 		WaitVBlank();
-		// VDP_SetColor(COLOR_LIGHT_BLUE);
-
 		FSM_Update();
-
-		// Print_DrawCharAt(31, 0, g_CharAnim[g_Frame & 0x03]);
-
 		if(Keyboard_IsKeyPressed(KEY_ESC))
 			bContinue = FALSE;
-		
 	}
 
 	Bios_ClearHook(H_TIMI);
 	Bios_Exit(0);
 }
-
-

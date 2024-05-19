@@ -125,6 +125,7 @@ void UpdateCarrotUI();
 #include "gfx/carrot.h"
 #include "gfx/carrot_ground.h"
 #include "gfx/rabbit.h"
+#include "gfx/rabbit_dies.h"
 #include "gfx/player.h"
 
 // Fonts
@@ -200,6 +201,7 @@ u8 g_CarrotSpriteDataRotLeft[1 * 2 * 4 * 8];
 u8 g_CarrotSpriteDataRotHalf[1 * 2 * 4 * 8];
 
 u8 g_RabbitSpriteData[RABBIT_ANIMATION_FRAMES * 2 * 4 * 8];
+u8 g_RabbitDiesSpriteData[RABBIT_ANIMATION_FRAMES * 2 * 4 * 8];
 
 // Sprite buffer
 u8 g_Buffer1[32];
@@ -388,7 +390,7 @@ void UpdateGame()
 						// Rabbit is hit with a bullet!
 						bullets[i].state = 0;
 						rabbits[j].state = 3;
-						rabbits[j].actionTimer = 3 * 60;
+						rabbits[j].actionTimer = 1 * 60;
 					}
 				}
 			}
@@ -746,6 +748,7 @@ void InitDraw()
 	// Load sprites in correct order to memory
 	RearrangeSprites(g_carrot, g_CarrotSpriteData, 1);
 	RearrangeSprites(g_rabbit, g_RabbitSpriteData, RABBIT_ANIMATION_FRAMES);
+	RearrangeSprites(g_rabbit_dies, g_RabbitDiesSpriteData, RABBIT_ANIMATION_FRAMES);
 	RearrangeSprites(g_player, g_PlayerSpriteData, PLAYER_ANIMATION_FRAMES);
 
 	// Initialize 16x16 OR sprites
@@ -773,7 +776,7 @@ void InitDraw()
 	}
 
 	// rabbits
-	const int rabbit_index = carrot_index + MAX_CARROTS_IN_CARRY * 2;
+	int rabbit_index = carrot_index + MAX_CARROTS_IN_CARRY * 2;
 	for (i = 0; i < RABBIT_COUNT; ++i )
 	{
 		VDP_SetSpriteExUniColor(rabbit_index + i,     0, 0,               (rabbit_index + i) * 4, 0x04);
@@ -781,6 +784,16 @@ void InitDraw()
 		VDP_LoadSpritePattern(g_RabbitSpriteData,                                   (rabbit_index + i) * 4, 4);
 		VDP_LoadSpritePattern(g_RabbitSpriteData + 4 * RABBIT_ANIMATION_FRAMES * 8, (rabbit_index + 1 + i) * 4, 4);
 	}
+	// rabbit dies
+	rabbit_index = rabbit_index + RABBIT_COUNT * 2;
+	for (i = 0; i < RABBIT_COUNT; ++i )
+	{
+		VDP_SetSpriteExUniColor(rabbit_index + i,     0, 0,               (rabbit_index + i) * 4, 0x04);
+		VDP_SetSpriteExUniColor(rabbit_index + 1 + i, 0, 0,               (rabbit_index + 1 + i) * 4, VDP_SPRITE_CC + 0x01);
+		VDP_LoadSpritePattern(g_RabbitDiesSpriteData,                                   (rabbit_index + i) * 4, 4);
+		VDP_LoadSpritePattern(g_RabbitDiesSpriteData + 4 * RABBIT_ANIMATION_FRAMES * 8, (rabbit_index + 1 + i) * 4, 4);
+	}
+
 
 	// Compute transformed sprite data
 	// loop(i, 6 * 2)
@@ -831,11 +844,19 @@ void UpdateDraw()
 
 	frame = (g_Frame >> 2) % RABBIT_ANIMATION_FRAMES;
 	pat = (frame * 8 * 4);
+
+
 	pat1 = g_RabbitSpriteData + pat;
 	pat2 = g_RabbitSpriteData + pat + RABBIT_ANIMATION_FRAMES * 4 * 8;
 
 	for (i = 0; i < RABBIT_COUNT; ++i )
 	{
+		if (rabbits[i].state == 3)
+		{
+			pat1 = g_RabbitDiesSpriteData + pat;
+			pat2 = g_RabbitDiesSpriteData + pat + RABBIT_ANIMATION_FRAMES * 4 * 8;
+		}
+
 		VDP_SetSpritePosition(14 + i, rabbits[i].pos.x, rabbits[i].pos.y);
 		VDP_SetSpritePosition(15 + i, rabbits[i].pos.x, rabbits[i].pos.y);
 		// VDP_LoadSpritePattern(pat1, 14, 4);

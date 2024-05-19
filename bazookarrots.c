@@ -39,6 +39,8 @@ typedef struct
 typedef struct
 {
     u8 type; // 0 = Nothing, 1 = Carrot
+	u16 growTimer;
+	VectorU8 tilePos;
 	VectorI16 pos;
 } Target;
 
@@ -55,7 +57,7 @@ typedef struct
 
 #define BULLET_SIZE 16
 #define BULLET_SIZE_HALF 8
-#define BULLET_SPEED 2;
+#define BULLET_SPEED 5;
 typedef struct 
 {
 	u8 state; // 0 = Inactive, 1 = Moving
@@ -65,7 +67,7 @@ typedef struct
 
 #define PLAYER_SIZE 16
 #define MAX_CARROTS_IN_CARRY 3
-#define PLAYER_SPEED 4
+#define PLAYER_SPEED 3
 #define PLAYER_SPEED_DIAGONAL 2
 #define PLAYER_ANIMATION_FRAMES 4
 typedef struct 
@@ -79,12 +81,14 @@ typedef struct
 } Player;
 
 // Game data
-#define TARGET_COUNT 4
+#define TARGET_COUNT 32
 #define RABBIT_COUNT 2
 Target targets[TARGET_COUNT];
 Rabbit rabbits[RABBIT_COUNT];
 Bullet bullets[MAX_CARROTS_IN_CARRY];
 Player player;
+
+u16 score;
 
 // Function prototypes
 void InitDraw();
@@ -102,6 +106,7 @@ bool CheckBoxCollision(VectorI16* posA, VectorI16* posB, u8 sizeA, u8 sizeB);
 bool InInBounds(VectorI16* pos, u8 size);
 void CheckShootInputAndMaybeShoot();
 void MoveRabbitToSpawn(u8 index);
+u16 GetCarrotGrowTime();
 
 //=============================================================================
 // READ-ONLY DATA
@@ -158,14 +163,16 @@ const u8 g_TileMap[] =
 	  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65,  66,  65, 
 };
 
-const u8 g_TreeTileMap[] =
+const u8 g_CarrotMap[] =
 {
-	 000, 000,  28,  29, 000, 000,
-	 000,  59,  60,  61,  62, 000,
-	  90,  91,  92,  93,  94,  95,
-	 122, 123, 124, 125, 126, 127,
-	 154, 155, 156, 157, 158, 159,
-	 000, 000, 188, 189, 000, 000,
+	 156, 157,
+	 188, 189,
+};
+
+const u8 g_CarrotMapEmpty[] =
+{
+	 98,  97,
+	 188, 189,
 };
 
 //=============================================================================
@@ -189,21 +196,19 @@ u8 g_PlayerSpriteData[PLAYER_ANIMATION_FRAMES * 2 * 4 * 8];
 u8 g_CarrotSpriteData[1 * 2 * 4 * 8];
 u8 g_RabbitSpriteData[RABBIT_ANIMATION_FRAMES * 2 * 4 * 8];
 
-
 // Sprite buffer
 u8 g_Buffer1[32];
 u8 g_Buffer2[32];
 u8 g_Buffer3[32];
 u8 g_Buffer4[32];
 
-//
 u8 g_FXIndex;
 
 u8 i;
 u8 j;
 u8 k;
-u8 tempX;
-u8 tempY;
+i16 tempX;
+i16 tempY;
 
 //=============================================================================
 // GAME FUNCTIONS
@@ -214,9 +219,46 @@ void InitGameData()
 	InitDraw();
 	for(i = 0; i < TARGET_COUNT; ++i)
 	{
-		targets[i].type = 0;
-		targets[i].pos.x = 10 + 5 * i;
-		targets[i].pos.y = 10;
+		
+		if(i < 8)
+		{
+			targets[i].type = 0;
+			targets[i].growTimer = GetCarrotGrowTime();
+			targets[i].tilePos.x = 4 + i * 3;
+			targets[i].tilePos.y = 10;
+		}
+		else if(i < 16)
+		{
+			targets[i].type = 0;
+			targets[i].growTimer = GetCarrotGrowTime();
+			targets[i].tilePos.x = 5 + (i - 8) * 3;
+			targets[i].tilePos.y = 13;	
+		}
+		else if(i < 24)
+		{
+			targets[i].type = 1;
+			targets[i].growTimer = 0;
+			targets[i].tilePos.x = 4 + (i - 16) * 3;
+			targets[i].tilePos.y = 16;	
+		}
+		else
+		{
+			targets[i].type = 1;
+			targets[i].growTimer = 0;
+			targets[i].tilePos.x = 5 + (i - 24) * 3;
+			targets[i].tilePos.y = 19;	
+		}
+		targets[i].pos.x = 8 * targets[i].tilePos.x;
+		targets[i].pos.y = 8 * targets[i].tilePos.y;
+
+		if(targets[i].type == 0)
+		{
+			Tile_DrawMapChunk(targets[i].tilePos.x, targets[i].tilePos.y, g_CarrotMapEmpty, 2, 2);
+		}
+		else
+		{
+			Tile_DrawMapChunk(targets[i].tilePos.x, targets[i].tilePos.y, g_CarrotMap, 2, 2);
+		}
 	}
 
 	for(i = 0; i < RABBIT_COUNT; ++i)
@@ -240,6 +282,9 @@ void InitGameData()
 	player.pos.y = 40;
 	player.vel.x = 0;
 	player.vel.y = 0;
+
+	score = 0;
+	timeLeft = 60;
 }
 
 void UpdateGame()
@@ -303,7 +348,11 @@ void UpdateGame()
 	{
 		// TODO: Stop player walk
 	}
-	CheckShootInputAndMaybeShoot();
+
+	if(player.carrots > 0)
+	{
+		CheckShootInputAndMaybeShoot();
+	}
 
 	// Clamp player to play area
 	player.pos.x = Clamp16(player.pos.x, 0, TILE_SCREEN_WIDTH - PLAYER_SIZE);
@@ -321,14 +370,14 @@ void UpdateGame()
 			// Did we hit a rabbit?
 			for(j = 0; j < RABBIT_COUNT; ++j)
 			{
-				if(rabbits[j].state != 0)
+				if(rabbits[j].state != 0 || rabbits[j].state != 3)
 				{
 					if(CheckBoxCollision(&bullets[i].pos, &rabbits[j].pos, BULLET_SIZE, RABBIT_SIZE))
 					{
 						// Rabbit is hit with a bullet!
-						bullets[i].state == 0;
+						bullets[i].state = 0;
 						rabbits[i].state = 3;
-						rabbits[i].actionTimer = i * 120;
+						rabbits[i].actionTimer = 3 * 60;
 					}
 				}
 			}
@@ -343,6 +392,12 @@ void UpdateGame()
 
 	for(i = 0; i < RABBIT_COUNT; ++i)
 	{
+		if(rabbits[i].actionTimer > 0)
+		{
+			// Decrease action timer, when it hits zero rabbit will continue update again
+			rabbits[i].actionTimer--;
+		}
+
 		if(rabbits[i].actionTimer == 0)
 		{
 			if(rabbits[i].state == 0) // Active inactive rabbit
@@ -376,10 +431,15 @@ void UpdateGame()
 				// Are we at the target?
 				if(CheckBoxCollision(&rabbits[i].pos, &targets[rabbits[i].target].pos, RABBIT_SIZE, TARGET_SIZE))
 				{
+					// If target is carrot eat it, if not wait (in both cases, get a new target after anim/wait)
 					if(targets[rabbits[i].target].type == 1)
 					{
 						rabbits[i].state == 2; // Eat target
 						rabbits[i].actionTimer = 60;
+						targets[rabbits[i].target].type = 0;
+						targets[rabbits[i].target].growTimer = GetCarrotGrowTime();
+						Tile_DrawMapChunk(targets[rabbits[i].target].tilePos.x, targets[rabbits[i].target].tilePos.y, g_CarrotMapEmpty, 2, 2);
+						rabbits[i].target = Math_GetRandomRange8(0, TARGET_COUNT); // WTF, why does this help?
 						// TODO: Play eat sound
 						// TODO: Play eat animation
 					}
@@ -400,12 +460,42 @@ void UpdateGame()
 				rabbits[i].state == 0;
 			}
 		}
-		else
+	}
+
+	// Update carrots
+	for(int i = 0; i < TARGET_COUNT; ++i)
+	{
+		if(targets[i].type == 0) // Grow carrots
 		{
-			// Decrease action timer, when it hits zero rabbit will continue update again
-			rabbits[i].actionTimer--;
+			targets[i].growTimer--;
+			if(targets[i].growTimer == 0)
+			{
+				targets[i].type = 1;
+				Tile_DrawMapChunk(targets[i].tilePos.x, targets[i].tilePos.y, g_CarrotMap, 2, 2);	
+			}
+		}
+		else // Pick up carrots
+		{
+			if(player.carrots < MAX_CARROTS_IN_CARRY)
+			{
+				if(CheckBoxCollision(&player.pos, &targets[i].pos, PLAYER_SIZE, TARGET_SIZE))
+				{
+					player.carrots++;
+					targets[i].type = 0;
+					targets[i].growTimer = GetCarrotGrowTime();
+					Tile_DrawMapChunk(targets[i].tilePos.x, targets[i].tilePos.y, g_CarrotMapEmpty, 2, 2);	
+				}
+			}
 		}
 	}
+
+	// Return carrots
+	if(player.pos.x < 32 && player.pos.y < 42)
+	{
+		score += player.carrots;
+		player.carrots = 0;
+	}
+
 	UpdateDraw();
 
 	if (g_Frame % 60 == 0)
@@ -415,11 +505,16 @@ void UpdateGame()
 		FSM_SetState(&g_GameOver);
 }
 
+u16 GetCarrotGrowTime()
+{
+	return Math_GetRandomRange16(60 * 20, 60 * 30); // Grow new carrot after random time
+}
+
 void MoveRabbitToSpawn(u8 index)
 {
 	rabbits[index].state = 0;
-	rabbits[index].pos.x = Math_GetRandomRange8(10, 240);
-	rabbits[index].pos.y = 200;
+	rabbits[index].pos.x = Math_GetRandomRange16(10, 240);
+	rabbits[index].pos.y = TILE_SCREEN_HEIGHT;
 }
 
 // Pos is top left corner
@@ -495,6 +590,7 @@ void CheckShootInputAndMaybeShoot()
 					bullets[i].vel.x = -BULLET_SPEED;
 					bullets[i].vel.y = -BULLET_SPEED;
 				}
+				player.carrots--;
 
 				break;
 			}
@@ -605,11 +701,33 @@ void InitDraw()
 	Tile_DrawScreen(g_TileMap); // Draw the whole screen tilemap
 	//Tile_DrawBlock(10, 8, 4, 4, 4, 2); // Draw a cloud (4x2 tiles)
 
+	//Tile_DrawMapChunk(10, 10, g_CarrotMap, 2, 2);
+	//Tile_DrawMapChunk(10, 13, g_CarrotMap, 2, 2);
+	//Tile_DrawMapChunk(10, 16, g_CarrotMap, 2, 2);
+	//Tile_DrawMapChunk(10, 19, g_CarrotMap, 2, 2);
+//
+	//Tile_DrawMapChunk(13, 10, g_CarrotMap, 2, 2);
+	//Tile_DrawMapChunk(13, 13, g_CarrotMap, 2, 2);
+	//Tile_DrawMapChunk(13, 16, g_CarrotMap, 2, 2);
+	//Tile_DrawMapChunk(13, 19, g_CarrotMap, 2, 2);
+//
+	//Tile_DrawMapChunk(16, 10, g_CarrotMap, 2, 2);
+	//Tile_DrawMapChunk(16, 13, g_CarrotMap, 2, 2);
+	//Tile_DrawMapChunk(16, 16, g_CarrotMap, 2, 2);
+	//Tile_DrawMapChunk(16, 19, g_CarrotMap, 2, 2);
+//
+	//Tile_DrawMapChunk(19, 10, g_CarrotMap, 2, 2);
+	//Tile_DrawMapChunk(19, 13, g_CarrotMap, 2, 2);
+	//Tile_DrawMapChunk(19, 16, g_CarrotMap, 2, 2);
+	//Tile_DrawMapChunk(19, 19, g_CarrotMap, 2, 2);
+
 	// Setup and draw UI
 	Print_SetBitmapFont(g_Font_MGL_Sample8);
 	Print_SetColor(0x11, 0x66);
 	Print_SetPosition(4, 4);
 	Print_DrawText("TIME");
+	Print_SetPosition(100, 4);
+	Print_DrawText("SCORE");
 	
 	// Setup sprite
 	VDP_EnableSprite(TRUE);
@@ -717,7 +835,6 @@ void UpdateDraw()
 	// DRAW CARROTS
 	for(i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
 	{
-
 		if(bullets[i].state == 1)
 		{
 			// VDP_SetSprite(8 + i, bullets[i].pos.x, bullets[i].pos.y, (4 * 8) + i * 4);
@@ -743,6 +860,8 @@ void UpdateDraw()
 	// Draw UI
 	Print_SetPosition(40, 4);
 	Print_DrawInt(timeLeft);
+	Print_SetPosition(148, 4);
+	Print_DrawInt(score);
 
 	// if(Keyboard_IsKeyPressed(KEY_SPACE))
 	// 	FSM_SetState(&g_State8);

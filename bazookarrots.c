@@ -54,6 +54,7 @@ typedef struct
 	u16 actionTimer; // If not zero, do not change state
     u8 target; // Index in target list
 	VectorI16 pos;
+	bool flipHorizontal;
 } Rabbit;
 
 #define BULLET_SIZE 16
@@ -431,10 +432,12 @@ void UpdateGame()
 				if(tempX > rabbits[i].pos.x)
 				{
 					rabbits[i].pos.x += RABBIT_SPEED;
+					rabbits[i].flipHorizontal = false;
 				}
 				else if(tempX < rabbits[i].pos.x)
 				{
 					rabbits[i].pos.x -= RABBIT_SPEED;
+					rabbits[i].flipHorizontal = true;
 				}
 				if(tempY > rabbits[i].pos.y)
 				{
@@ -759,13 +762,13 @@ void InitDraw()
 	VDP_SetSpriteExUniColor(0, 0, 0, 0 * 4, 0x02);
 	VDP_SetSpriteExUniColor(1, 0, 0, 1 * 4, VDP_SPRITE_CC + 0x01);
 
-	// rotating bersons
-	VDP_SetSpriteExUniColor(2, 0, 0, 2 * 4, 0x02);
-	VDP_SetSpriteExUniColor(3, 0, 0, 3 * 4, VDP_SPRITE_CC + 0x01);
-	VDP_SetSpriteExUniColor(4, 0, 0, 4 * 4, 0x02);
-	VDP_SetSpriteExUniColor(5, 0, 0, 5 * 4, VDP_SPRITE_CC + 0x01);
-	VDP_SetSpriteExUniColor(6, 0, 0, 6 * 4, 0x02);
-	VDP_SetSpriteExUniColor(7, 0, 0, 7 * 4, VDP_SPRITE_CC + 0x01);
+	// // rotating bersons
+	// VDP_SetSpriteExUniColor(2, 0, 0, 2 * 4, 0x02);
+	// VDP_SetSpriteExUniColor(3, 0, 0, 3 * 4, VDP_SPRITE_CC + 0x01);
+	// VDP_SetSpriteExUniColor(4, 0, 0, 4 * 4, 0x02);
+	// VDP_SetSpriteExUniColor(5, 0, 0, 5 * 4, VDP_SPRITE_CC + 0x01);
+	// VDP_SetSpriteExUniColor(6, 0, 0, 6 * 4, 0x02);
+	// VDP_SetSpriteExUniColor(7, 0, 0, 7 * 4, VDP_SPRITE_CC + 0x01);
 
 	// bullets
 	const int carrot_index = 8;
@@ -841,10 +844,21 @@ void UpdateDraw()
 
 	for (i = 0; i < RABBIT_COUNT; ++i )
 	{
-		VDP_SetSpritePosition(14 + i,     rabbits[i].pos.x, rabbits[i].pos.y);
-		VDP_SetSpritePosition(14 + 1 + i, rabbits[i].pos.x, rabbits[i].pos.y);
-		VDP_LoadSpritePattern(pat1, 14, 4);
-		VDP_LoadSpritePattern(pat2, 14 + 1 * 4, 4);
+		VDP_SetSpritePosition(14 + i, rabbits[i].pos.x, rabbits[i].pos.y);
+		VDP_SetSpritePosition(15 + i, rabbits[i].pos.x, rabbits[i].pos.y);
+		// VDP_LoadSpritePattern(pat1, 14, 4);
+		// VDP_LoadSpritePattern(pat2, 14 + 1 * 4, 4);
+		if(rabbits[i].flipHorizontal)
+		{
+			SpriteFX_FlipHorizontal16(pat1, g_Buffer3);
+			SpriteFX_FlipHorizontal16(pat2, g_Buffer4);
+			VDP_LoadSpritePattern(g_Buffer3, (14 + i) * 4, 4);
+			VDP_LoadSpritePattern(g_Buffer4, (15 + i) * 4, 4);
+		}
+		else {
+			VDP_LoadSpritePattern(pat1, (14 + i) * 4, 4);
+			VDP_LoadSpritePattern(pat2, (15 + i) * 4, 4);
+		}
 	}
 
 	// DRAW CARROTS

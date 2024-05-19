@@ -16,6 +16,7 @@
 #include "sprite_fx.h"
 #include "math.h"
 #include "tile.h"
+#include "clock.h"
 
 //=============================================================================
 // DEFINES
@@ -226,38 +227,46 @@ i16 tempY;
 
 void InitGameData()
 {
+	Math_SetRandomSeed8(RTC_Read(0));
+	Math_SetRandomSeed16(RTC_Read(0));
+
 	InitDraw();
 	for(i = 0; i < TARGET_COUNT; ++i)
 	{
-		
 		if(i < 8)
 		{
-			targets[i].type = 0;
-			targets[i].growTimer = GetCarrotGrowTime();
 			targets[i].tilePos.x = 4 + i * 3;
-			targets[i].tilePos.y = 10;
+			targets[i].tilePos.y = 9;
 		}
 		else if(i < 16)
 		{
-			targets[i].type = 0;
-			targets[i].growTimer = GetCarrotGrowTime();
 			targets[i].tilePos.x = 5 + (i - 8) * 3;
 			targets[i].tilePos.y = 13;	
 		}
 		else if(i < 24)
 		{
-			targets[i].type = 1;
-			targets[i].growTimer = 0;
 			targets[i].tilePos.x = 4 + (i - 16) * 3;
 			targets[i].tilePos.y = 16;	
 		}
 		else
 		{
-			targets[i].type = 1;
-			targets[i].growTimer = 0;
 			targets[i].tilePos.x = 5 + (i - 24) * 3;
 			targets[i].tilePos.y = 19;	
 		}
+
+		if(Math_GetRandomMax16(10) > 4)
+		{
+			targets[i].type = 1;
+			targets[i].growTimer = 0;
+			targets[i].tilePos.x += Math_GetRandomMax16(2);
+		}
+		else
+		{
+			targets[i].type = 0;
+			targets[i].growTimer = GetCarrotGrowTime();
+			targets[i].tilePos.y += Math_GetRandomMax16(3) - 1;
+		}
+
 		targets[i].pos.x = 8 * targets[i].tilePos.x;
 		targets[i].pos.y = 8 * targets[i].tilePos.y;
 

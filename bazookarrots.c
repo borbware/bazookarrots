@@ -122,7 +122,6 @@ void UpdateCarrotUI();
 #include "content/tile/data_bg_4b.h"
 
 // Sprite by GrafxKid (https://opengameart.org/content/super-random-sprites)
-#include "content/data_sprt_16or.h"
 #include "gfx/carrot.h"
 #include "gfx/carrot_ground.h"
 #include "gfx/rabbit.h"
@@ -132,7 +131,6 @@ void UpdateCarrotUI();
 #include "font/font_mgl_sample8.h"
 
 // Character animation
-const u8* g_RotAnim[] = { g_PatternData, g_PatternDataRotLeft, g_PatternDataRotHalf, g_PatternDataRotRight };
 const u8* g_CarRotAnim[] = { g_CarrotSpriteData, g_CarrotSpriteDataRotLeft, g_CarrotSpriteDataRotHalf, g_CarrotSpriteDataRotRight };
 
 // states
@@ -193,11 +191,6 @@ u8 g_VBlank = 0;
 u8 g_Frame = 0;
 
 // Sprite data for player
-u8 g_PatternData[PATTERN_16_NUM * 8];
-
-u8 g_PatternDataRotRight[PATTERN_16_NUM * 8];
-u8 g_PatternDataRotLeft[PATTERN_16_NUM * 8];
-u8 g_PatternDataRotHalf[PATTERN_16_NUM * 8];
 
 u8 g_PlayerSpriteData[PLAYER_ANIMATION_FRAMES * 2 * 4 * 8];
 
@@ -751,7 +744,6 @@ void InitDraw()
 	VDP_HideSpriteFrom(8);
 
 	// Load sprites in correct order to memory
-	RearrangeSprites(g_DataSprt16or, g_PatternData, 6);
 	RearrangeSprites(g_carrot, g_CarrotSpriteData, 1);
 	RearrangeSprites(g_rabbit, g_RabbitSpriteData, RABBIT_ANIMATION_FRAMES);
 	RearrangeSprites(g_player, g_PlayerSpriteData, PLAYER_ANIMATION_FRAMES);

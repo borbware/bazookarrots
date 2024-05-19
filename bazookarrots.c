@@ -572,7 +572,7 @@ void CheckShootInputAndMaybeShoot()
 {
 	if(Keyboard_IsKeyPushed(KEY_SPACE))
 	{
-		for(i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
+		for(i = MAX_CARROTS_IN_CARRY - 1; i >= 0 ; --i)
 		{
 			if(bullets[i].state == 0)
 			{
@@ -770,10 +770,11 @@ void InitDraw()
 
 	// bullets
 	const int carrot_index = 8;
+	const int y0 = 211;
 	for (i = 0; i < MAX_CARROTS_IN_CARRY; ++i )
 	{
-		VDP_SetSpriteExUniColor(carrot_index + i,     0, 0, (carrot_index + i) * 4, 3);
-		VDP_SetSpriteExUniColor(carrot_index + 1 + i, 0, 0, (carrot_index + 1 + i) * 4, VDP_SPRITE_CC + 1);
+		VDP_SetSpriteExUniColor(carrot_index + i,     0, y0, (carrot_index + i) * 4, 3);
+		VDP_SetSpriteExUniColor(carrot_index + 1 + i, 0, y0, (carrot_index + 1 + i) * 4, VDP_SPRITE_CC + 1);
 		VDP_LoadSpritePattern(g_CarrotSpriteData,                     (carrot_index + i) * 4, 4);
 		VDP_LoadSpritePattern(g_CarrotSpriteData + 4 * 8,             (carrot_index + 1 + i) * 4, 4);
 	}
@@ -782,8 +783,8 @@ void InitDraw()
 	int rabbit_index = carrot_index + MAX_CARROTS_IN_CARRY * 2;
 	for (i = 0; i < RABBIT_COUNT; ++i )
 	{
-		VDP_SetSpriteExUniColor(rabbit_index + i,     0, 0,               (rabbit_index + i) * 4, 10);
-		VDP_SetSpriteExUniColor(rabbit_index + 1 + i, 0, 0,               (rabbit_index + 1 + i) * 4, VDP_SPRITE_CC + 1);
+		VDP_SetSpriteExUniColor(rabbit_index + i,     0, y0,               (rabbit_index + i) * 4, 10);
+		VDP_SetSpriteExUniColor(rabbit_index + 1 + i, 0, y0,               (rabbit_index + 1 + i) * 4, VDP_SPRITE_CC + 1);
 		VDP_LoadSpritePattern(g_RabbitSpriteData,                                   (rabbit_index + i) * 4, 4);
 		VDP_LoadSpritePattern(g_RabbitSpriteData + 4 * RABBIT_ANIMATION_FRAMES * 8, (rabbit_index + 1 + i) * 4, 4);
 	}
@@ -791,8 +792,8 @@ void InitDraw()
 	rabbit_index = rabbit_index + RABBIT_COUNT * 2;
 	for (i = 0; i < RABBIT_COUNT; ++i )
 	{
-		VDP_SetSpriteExUniColor(rabbit_index + i,     0, 0,               (rabbit_index + i) * 4, 0x04);
-		VDP_SetSpriteExUniColor(rabbit_index + 1 + i, 0, 0,               (rabbit_index + 1 + i) * 4, VDP_SPRITE_CC + 0x01);
+		VDP_SetSpriteExUniColor(rabbit_index + i,     0, y0,               (rabbit_index + i) * 4, 10);
+		VDP_SetSpriteExUniColor(rabbit_index + 1 + i, 0, y0,               (rabbit_index + 1 + i) * 4, VDP_SPRITE_CC + 1);
 		VDP_LoadSpritePattern(g_RabbitDiesSpriteData,                                   (rabbit_index + i) * 4, 4);
 		VDP_LoadSpritePattern(g_RabbitDiesSpriteData + 4 * RABBIT_ANIMATION_FRAMES * 8, (rabbit_index + 1 + i) * 4, 4);
 	}
@@ -800,8 +801,8 @@ void InitDraw()
 	rabbit_index = rabbit_index + RABBIT_COUNT * 2;
 	for (i = 0; i < RABBIT_COUNT; ++i )
 	{
-		VDP_SetSpriteExUniColor(rabbit_index + i,     0, 0,               (rabbit_index + i) * 4, 0x04);
-		VDP_SetSpriteExUniColor(rabbit_index + 1 + i, 0, 0,               (rabbit_index + 1 + i) * 4, VDP_SPRITE_CC + 0x01);
+		VDP_SetSpriteExUniColor(rabbit_index + i,     0, y0,               (rabbit_index + i) * 4, 10);
+		VDP_SetSpriteExUniColor(rabbit_index + 1 + i, 0, y0,               (rabbit_index + 1 + i) * 4, VDP_SPRITE_CC + 1);
 		VDP_LoadSpritePattern(g_RabbitEatsSpriteData,                                   (rabbit_index + i) * 4, 4);
 		VDP_LoadSpritePattern(g_RabbitEatsSpriteData + 4 * RABBIT_ANIMATION_FRAMES * 8, (rabbit_index + 1 + i) * 4, 4);
 	}

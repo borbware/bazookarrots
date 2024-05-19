@@ -393,8 +393,8 @@ void UpdateGame()
 					{
 						// Rabbit is hit with a bullet!
 						bullets[i].state = 0;
-						rabbits[i].state = 3;
-						rabbits[i].actionTimer = 3 * 60;
+						rabbits[j].state = 3;
+						rabbits[j].actionTimer = 3 * 60;
 					}
 				}
 			}
@@ -537,7 +537,7 @@ void UpdateGame()
 
 u16 GetCarrotGrowTime()
 {
-	return Math_GetRandomRange16(60 * 20, 60 * 30); // Grow new carrot after random time
+	return Math_GetRandomRange16(60 * 16, 60 * 20); // Grow new carrot after random time
 }
 
 void MoveRabbitToSpawn(u8 index)

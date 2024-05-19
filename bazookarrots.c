@@ -107,6 +107,10 @@ bool InInBounds(VectorI16* pos, u8 size);
 void CheckShootInputAndMaybeShoot();
 void MoveRabbitToSpawn(u8 index);
 u16 GetCarrotGrowTime();
+void UpdateTimeUI();
+void UpdateScoreUI();
+void UpdateCarrotUI();
+
 
 //=============================================================================
 // READ-ONLY DATA
@@ -285,6 +289,9 @@ void InitGameData()
 
 	score = 0;
 	timeLeft = 60;
+	UpdateTimeUI();
+	UpdateScoreUI();
+	UpdateCarrotUI();
 }
 
 void UpdateGame()
@@ -481,6 +488,7 @@ void UpdateGame()
 				if(CheckBoxCollision(&player.pos, &targets[i].pos, PLAYER_SIZE, TARGET_SIZE))
 				{
 					player.carrots++;
+					UpdateCarrotUI();
 					targets[i].type = 0;
 					targets[i].growTimer = GetCarrotGrowTime();
 					Tile_DrawMapChunk(targets[i].tilePos.x, targets[i].tilePos.y, g_CarrotMapEmpty, 2, 2);	
@@ -492,14 +500,22 @@ void UpdateGame()
 	// Return carrots
 	if(player.pos.x < 32 && player.pos.y < 42)
 	{
-		score += player.carrots;
-		player.carrots = 0;
+		if(player.carrots > 0)
+		{
+			score += player.carrots;
+			player.carrots = 0;
+			UpdateCarrotUI();
+			UpdateScoreUI();
+		}
 	}
 
 	UpdateDraw();
 
 	if (g_Frame % 60 == 0)
+	{
 		timeLeft -= 1;
+		UpdateTimeUI();
+	}
 
 	if (timeLeft == 0)
 		FSM_SetState(&g_GameOver);
@@ -591,6 +607,7 @@ void CheckShootInputAndMaybeShoot()
 					bullets[i].vel.y = -BULLET_SPEED;
 				}
 				player.carrots--;
+				UpdateCarrotUI();
 
 				break;
 			}
@@ -863,14 +880,43 @@ void UpdateDraw()
 		}
 	}
 
+	// if(Keyboard_IsKeyPressed(KEY_SPACE))
+	// 	FSM_SetState(&g_State8);
+}
+
+
+void UpdateTimeUI()
+{
 	// Draw UI
 	Print_SetPosition(40, 4);
 	Print_DrawInt(timeLeft);
+}
+
+void UpdateScoreUI()
+{
 	Print_SetPosition(148, 4);
 	Print_DrawInt(score);
+}
 
-	// if(Keyboard_IsKeyPressed(KEY_SPACE))
-	// 	FSM_SetState(&g_State8);
+void UpdateCarrotUI()
+{
+	Print_SetPosition(100, 14);
+	if(player.carrots == 0)
+	{
+		Print_DrawText("CARROTS 0/3");
+	}
+	else if(player.carrots == 1)
+	{
+		Print_DrawText("CARROTS 1/3");
+	}
+	else if(player.carrots == 2)
+	{
+		Print_DrawText("CARROTS 2/3");
+	}
+	else if(player.carrots == 3)
+	{
+		Print_DrawText("CARROTS 3/3");
+	}
 }
 
 //-----------------------------------------------------------------------------

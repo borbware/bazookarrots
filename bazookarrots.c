@@ -700,22 +700,22 @@ void InitDraw()
 
 	// Setup screen
 	VDP_SetMode(VDP_MODE_SCREEN5);
-	VDP_SetPaletteEntry(0, RGB16(7, 7, 7)); // TRANSPARENT
+	VDP_SetPaletteEntry(0, RGB16(5, 7, 7)); // TRANSPARENT
 	VDP_SetPaletteEntry(1, RGB16(0, 0, 0)); // BLACK
 	VDP_SetPaletteEntry(2, RGB16(7, 6, 5)); // PLAYER
 	VDP_SetPaletteEntry(3, RGB16(7, 3, 1)); // CARROT ORANGE
-	VDP_SetPaletteEntry(4, RGB16(6, 6, 6)); // RABBIT WHITE
-	VDP_SetPaletteEntry(5, RGB16(7, 7, 7));
-	VDP_SetPaletteEntry(6, RGB16(7, 7, 7));
-	VDP_SetPaletteEntry(7, RGB16(7, 7, 7));
-	VDP_SetPaletteEntry(8, RGB16(7, 7, 7));
-	VDP_SetPaletteEntry(9, RGB16(7, 7, 7));
-	VDP_SetPaletteEntry(10, RGB16(7, 7, 7));
-	VDP_SetPaletteEntry(11, RGB16(7, 7, 7));
-	VDP_SetPaletteEntry(12, RGB16(7, 7, 7));
-	VDP_SetPaletteEntry(13, RGB16(7, 7, 7));
-	VDP_SetPaletteEntry(14, RGB16(7, 7, 7));
-	VDP_SetPaletteEntry(15, RGB16(7, 7, 7));
+	VDP_SetPaletteEntry(4, RGB16(1, 4, 1)); // GROUND GREEN
+	VDP_SetPaletteEntry(5, RGB16(5, 7, 7));
+	VDP_SetPaletteEntry(6, RGB16(5, 7, 7));
+	VDP_SetPaletteEntry(7, RGB16(5, 7, 7));
+	VDP_SetPaletteEntry(8, RGB16(5, 7, 7));
+	VDP_SetPaletteEntry(9, RGB16(5, 7, 7));
+	VDP_SetPaletteEntry(10, RGB16(6, 6, 6)); // RABBIT WHITE
+	VDP_SetPaletteEntry(11, RGB16(5, 7, 7));
+	VDP_SetPaletteEntry(12, RGB16(5, 7, 7));
+	VDP_SetPaletteEntry(13, RGB16(5, 7, 7));
+	VDP_SetPaletteEntry(14, RGB16(5, 7, 7));
+	VDP_SetPaletteEntry(15, RGB16(2, 6, 2)); // GROUND LIGHT GREEN
 	VDP_SetColor(15);
 	VDP_SetPage(0);
 
@@ -772,8 +772,8 @@ void InitDraw()
 	const int carrot_index = 8;
 	for (i = 0; i < MAX_CARROTS_IN_CARRY; ++i )
 	{
-		VDP_SetSpriteExUniColor(carrot_index + i,     0, 0, (carrot_index + i) * 4, 0x03);
-		VDP_SetSpriteExUniColor(carrot_index + 1 + i, 0, 0, (carrot_index + 1 + i) * 4, VDP_SPRITE_CC + 0x01);
+		VDP_SetSpriteExUniColor(carrot_index + i,     0, 0, (carrot_index + i) * 4, 3);
+		VDP_SetSpriteExUniColor(carrot_index + 1 + i, 0, 0, (carrot_index + 1 + i) * 4, VDP_SPRITE_CC + 1);
 		VDP_LoadSpritePattern(g_CarrotSpriteData,                     (carrot_index + i) * 4, 4);
 		VDP_LoadSpritePattern(g_CarrotSpriteData + 4 * 8,             (carrot_index + 1 + i) * 4, 4);
 	}
@@ -782,8 +782,8 @@ void InitDraw()
 	int rabbit_index = carrot_index + MAX_CARROTS_IN_CARRY * 2;
 	for (i = 0; i < RABBIT_COUNT; ++i )
 	{
-		VDP_SetSpriteExUniColor(rabbit_index + i,     0, 0,               (rabbit_index + i) * 4, 0x04);
-		VDP_SetSpriteExUniColor(rabbit_index + 1 + i, 0, 0,               (rabbit_index + 1 + i) * 4, VDP_SPRITE_CC + 0x01);
+		VDP_SetSpriteExUniColor(rabbit_index + i,     0, 0,               (rabbit_index + i) * 4, 10);
+		VDP_SetSpriteExUniColor(rabbit_index + 1 + i, 0, 0,               (rabbit_index + 1 + i) * 4, VDP_SPRITE_CC + 1);
 		VDP_LoadSpritePattern(g_RabbitSpriteData,                                   (rabbit_index + i) * 4, 4);
 		VDP_LoadSpritePattern(g_RabbitSpriteData + 4 * RABBIT_ANIMATION_FRAMES * 8, (rabbit_index + 1 + i) * 4, 4);
 	}

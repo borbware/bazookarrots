@@ -17,6 +17,7 @@
 #include "math.h"
 #include "tile.h"
 #include "clock.h"
+#include "arkos/akm_player.h"
 
 //=============================================================================
 // DEFINES
@@ -122,6 +123,8 @@ void UpdateCarrotUI();
 #include "content/tile/data_bg_4b.h"
 
 // Sprite by GrafxKid (https://opengameart.org/content/super-random-sprites)
+#include "content/akm_CancinNueva.h"
+
 #include "gfx/carrot.h"
 #include "gfx/carrot_ground.h"
 #include "gfx/rabbit.h"
@@ -214,6 +217,116 @@ u8 j;
 u8 k;
 i16 tempX;
 i16 tempY;
+
+//=============================================================================
+// MUSIC
+//=============================================================================
+
+// Music entry structure
+struct MusicEntry
+{
+	const c8* Name;    // Music display name
+	const u8* Data;    // Address of the data in the segment
+	u8        Segment; // Segment number where the data is located
+};
+
+// Init function callback
+typedef void (*cbInit)(const void*, u8);
+// Play function callback
+typedef bool (*cbPlay)();
+// Init SFX function callback
+typedef u8 (*cbInitSFX)(const void*);
+// Play SFX function callback
+typedef void (*cbPlaySFX)(u8, u8, u8);
+// Stop SFX function callback
+typedef void (*cbStopSFX)(u8);
+
+// Player entry structure
+struct PlayerEntry
+{
+	const c8* Name;    // Player display name
+	cbPlay    Decode;  // Pointer to player's update function
+	cbInit    Init;    // Pointer to player's music initialization and playback function
+	callback  Stop;    // Pointer to player's music stop function
+	cbInitSFX InitSFX; // Pointer to player's SFX initialization function
+	cbPlaySFX PlaySFX; // Pointer to player's SFX playback function
+	cbStopSFX StopSFX; // Pointer to player's SFX stop function
+	const struct MusicEntry* Musics; // List of musics for this player
+};
+
+// Pointer to current player data
+const struct PlayerEntry* g_CurrentPlayer = NULL;
+
+// Current player index
+u8 g_PlayerIdx = 0;
+
+// Current music index
+u8 g_MusicIdx = 0;
+
+// Current SFX index
+// u8 g_SFXIdx = 0;
+
+// Number of SFX in the bank
+u8 g_SFXNum = 0;
+
+
+// Musics list for AKG replayer
+const struct MusicEntry g_MusicEntryAKM[] =
+{
+	{ "cancin", g_AKM_CancinNueva, 5 },
+};
+// Replayers data
+const struct PlayerEntry g_PlayerEntry[] =
+{
+	{ "AKM", AKM_Decode, AKM_Init, AKM_Stop, AKM_InitSFX, AKM_PlaySFX, AKM_StopSFX, g_MusicEntryAKM },
+};
+
+// Set the new music to be played
+void SetMusic(u8 idx)
+{
+	g_MusicIdx = idx;
+	// g_SFXIdx = 0;
+
+	// Get current music data
+	const struct MusicEntry* mus = &g_MusicEntryAKM[idx];
+
+	// // If current replayer supports SFX, initialize the sound bank
+	// // Note: SFX data have been exported to be replayed at address 0xE000
+	// if(g_CurrentPlayer->InitSFX) 
+	// {
+	// 	Mem_Copy(g_AKX_effects, (void*)0xE000, sizeof(g_AKX_effects));
+	// 	g_SFXNum = g_CurrentPlayer->InitSFX((const void*)0xE000); // can be AKG_InitSFX or AKM_InitSFX
+	// }
+
+	// Select music mapper segment in bank #3 (0xA000~0xBFFF)
+	SET_BANK_SEGMENT(3, mus->Segment);
+
+	// Call the current replayer's initialize function (also start the music playback)
+	// Function can be AKG_Init, AKY_Init or AKM_Init
+	g_CurrentPlayer->Init(mus->Data, 0);
+}
+
+//-----------------------------------------------------------------------------
+// Set the curren Arkos Tracker 2's replayer
+void SetPlayer(u8 idx)
+{
+	// Stop previous playing song (using the previous replayer)
+	// if(g_CurrentPlayer)
+	// {
+	// 	if(g_CurrentPlayer->Stop)
+	// 		g_CurrentPlayer->Stop();
+
+	// 	// if(g_CurrentPlayer->StopSFX)
+	// 		// g_CurrentPlayer->StopSFX(0);
+	// }
+
+	// Select the new replayer
+	g_PlayerIdx = idx;
+	g_CurrentPlayer = &g_PlayerEntry[idx];
+
+	// Play the current music with the newly selected replayer
+	SetMusic(0);
+}
 
 //=============================================================================
 // GAME FUNCTIONS
@@ -909,6 +1022,10 @@ void UpdateCarrotUI()
 	}
 }
 
+
+// Is current frequency 50 Hz?
+bool g_Freq50Hz = FALSE;
+
 //-----------------------------------------------------------------------------
 // Program entry point
 void main()
@@ -920,11 +1037,24 @@ void main()
 
 	FSM_SetState(&g_StateGame);
 
+	// Select first replayer and first music
+	SetPlayer(0);
+	u8 frameCount = 0;
+
+
 	bool bContinue = TRUE;
 	while(bContinue)
 	{
 		Keyboard_Update();
 		WaitVBlank();
+
+		if(g_Freq50Hz || (frameCount % 6) != 0)
+		{
+			// g_CurrentPlayer->Decode(); // hajottaa pelin
+		}
+		// Increment frame counter and dispaly the sign-of-life
+		frameCount++;
+
 		FSM_Update();
 		if(Keyboard_IsKeyPressed(KEY_ESC))
 			bContinue = FALSE;

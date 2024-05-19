@@ -31,7 +31,7 @@ ProjModules = [ ProjName ];
 // ProjSegments = "";
 
 //-- List of library modules to build (array)
-LibModules = ["system", "bios", "vdp", "print", "input", "memory", "math", "draw", "sprite_fx", "fsm", "tile", "clock"];
+LibModules = ["system", "bios", "vdp", "print", "input", "memory", "math", "draw", "sprite_fx", "fsm", "tile", "clock", "arkos/akm_player"];
 
 //-- Additional sources to be compiled and linked with the project (array)
 // AddSources = [];

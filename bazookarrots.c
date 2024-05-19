@@ -471,6 +471,11 @@ void UpdateGame()
 						rabbits[i].actionTimer = 30;
 					}
 				}
+
+				if(targets[rabbits[i].target].type == 0) // Get new target if it is eaten
+				{
+					rabbits[i].target = Math_GetRandomRange8(0, TARGET_COUNT);
+				}
 			}
 			else if(rabbits[i].state == 2) // Eating, get new target
 			{

@@ -1,1 +1,0 @@
-MSXimg carrot_ground.png -format c -out carrot_ground.h -mode bmp -pos 0 16 -size 8 8 -gap 0 0 -num 2 4 -bpc 1 -trans 0xFF00FF -compress none -name g_carrot_ground

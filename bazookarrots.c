@@ -113,7 +113,6 @@ void UpdateTimeUI();
 void UpdateScoreUI();
 void UpdateCarrotUI();
 
-
 //=============================================================================
 // READ-ONLY DATA
 //=============================================================================
@@ -123,7 +122,6 @@ void UpdateCarrotUI();
 
 // Sprite by GrafxKid (https://opengameart.org/content/super-random-sprites)
 #include "gfx/carrot.h"
-#include "gfx/carrot_ground.h"
 #include "gfx/rabbit.h"
 #include "gfx/rabbit_dies.h"
 #include "gfx/rabbit_eats2.h"
@@ -218,6 +216,11 @@ u8 j;
 u8 k;
 i16 tempX;
 i16 tempY;
+
+u8 frame;
+u8 pat;
+u8* pat1;
+u8* pat2;
 
 //=============================================================================
 // GAME FUNCTIONS
@@ -572,7 +575,7 @@ void CheckShootInputAndMaybeShoot()
 {
 	if(Keyboard_IsKeyPushed(KEY_SPACE))
 	{
-		for(i = MAX_CARROTS_IN_CARRY - 1; i >= 0 ; --i)
+		for(i = MAX_CARROTS_IN_CARRY - 1; i >= 0; --i)
 		{
 			if(bullets[i].state == 0)
 			{
@@ -700,22 +703,22 @@ void InitDraw()
 
 	// Setup screen
 	VDP_SetMode(VDP_MODE_SCREEN5);
-	VDP_SetPaletteEntry(0, RGB16(5, 7, 7)); // TRANSPARENT
-	VDP_SetPaletteEntry(1, RGB16(0, 0, 0)); // BLACK
-	VDP_SetPaletteEntry(2, RGB16(7, 6, 5)); // PLAYER
-	VDP_SetPaletteEntry(3, RGB16(7, 3, 1)); // CARROT ORANGE
-	VDP_SetPaletteEntry(4, RGB16(1, 4, 1)); // GROUND GREEN
-	VDP_SetPaletteEntry(5, RGB16(5, 7, 7));
-	VDP_SetPaletteEntry(6, RGB16(5, 7, 7));
-	VDP_SetPaletteEntry(7, RGB16(5, 7, 7));
-	VDP_SetPaletteEntry(8, RGB16(5, 7, 7));
-	VDP_SetPaletteEntry(9, RGB16(5, 7, 7));
-	VDP_SetPaletteEntry(10, RGB16(6, 6, 6)); // RABBIT WHITE
-	VDP_SetPaletteEntry(11, RGB16(5, 7, 7));
-	VDP_SetPaletteEntry(12, RGB16(5, 7, 7));
-	VDP_SetPaletteEntry(13, RGB16(5, 7, 7));
-	VDP_SetPaletteEntry(14, RGB16(5, 7, 7));
-	VDP_SetPaletteEntry(15, RGB16(2, 6, 2)); // GROUND LIGHT GREEN
+	VDP_SetPaletteEntry(0, RGB16(7, 7, 7)); // TRANSPARENT
+	VDP_SetPaletteEntry(1, RGB16(0, 7, 0)); // CARROT GREEN
+	VDP_SetPaletteEntry(2, RGB16(7, 6, 5)); // PLAYER SKIN
+	VDP_SetPaletteEntry(3, RGB16(7, 0, 0)); // RABBIT EYE
+	VDP_SetPaletteEntry(4, RGB16(7, 0, 0)); // 
+	VDP_SetPaletteEntry(5, RGB16(7, 0, 0)); // 
+	VDP_SetPaletteEntry(6, RGB16(7, 0, 0)); // 
+	VDP_SetPaletteEntry(7, RGB16(7, 0, 0)); //
+	VDP_SetPaletteEntry(8, RGB16(7, 0, 0)); //
+	VDP_SetPaletteEntry(9, RGB16(7, 0, 0)); //
+	VDP_SetPaletteEntry(10, RGB16(6, 6, 6)); //
+	VDP_SetPaletteEntry(11, RGB16(7, 0, 0)); //
+	VDP_SetPaletteEntry(12, RGB16(6, 6, 6)); // RABBIT WHITE
+	VDP_SetPaletteEntry(13, RGB16(1, 1, 7)); // PLAYER GUN
+	VDP_SetPaletteEntry(14, RGB16(7, 3, 1)); // CARROT ORANGE
+	VDP_SetPaletteEntry(15, RGB16(0, 0, 0)); // BLACK
 	VDP_SetColor(15);
 	VDP_SetPage(0);
 
@@ -742,107 +745,59 @@ void InitDraw()
 	Print_SetPosition(100, 4);
 	Print_DrawText("SCORE");
 	
-	// Setup sprite
+	// Setup VDP sprite options
 	VDP_EnableSprite(TRUE);
 	VDP_SetSpriteFlag(VDP_SPRITE_SIZE_16);
-	VDP_HideSpriteFrom(8);
+	VDP_DisableSpritesFrom((1 + MAX_CARROTS_IN_CARRY + RABBIT_COUNT) * 2);
 
-	// Load sprites in correct order to memory
+	// Load sprites to memory
 	RearrangeSprites(g_carrot, g_CarrotSpriteData, 1);
 	RearrangeSprites(g_rabbit, g_RabbitSpriteData, RABBIT_ANIMATION_FRAMES);
 	RearrangeSprites(g_rabbit_dies, g_RabbitDiesSpriteData, RABBIT_ANIMATION_FRAMES);
 	RearrangeSprites(g_rabbit_eats2, g_RabbitEatsSpriteData, RABBIT_ANIMATION_FRAMES);
 	RearrangeSprites(g_player, g_PlayerSpriteData, PLAYER_ANIMATION_FRAMES);
 
-	// Initialize 16x16 OR sprites
-	
-	// player
-	VDP_SetSpriteExUniColor(0, 0, 0, 0 * 4, 0x02);
-	VDP_SetSpriteExUniColor(1, 0, 0, 1 * 4, VDP_SPRITE_CC + 0x01);
-
-	// // rotating bersons
-	// VDP_SetSpriteExUniColor(2, 0, 0, 2 * 4, 0x02);
-	// VDP_SetSpriteExUniColor(3, 0, 0, 3 * 4, VDP_SPRITE_CC + 0x01);
-	// VDP_SetSpriteExUniColor(4, 0, 0, 4 * 4, 0x02);
-	// VDP_SetSpriteExUniColor(5, 0, 0, 5 * 4, VDP_SPRITE_CC + 0x01);
-	// VDP_SetSpriteExUniColor(6, 0, 0, 6 * 4, 0x02);
-	// VDP_SetSpriteExUniColor(7, 0, 0, 7 * 4, VDP_SPRITE_CC + 0x01);
-
-	// bullets
-	const int carrot_index = 8;
-	const int y0 = 211;
-	for (i = 0; i < MAX_CARROTS_IN_CARRY; ++i )
+	// Calculate carrot bullet rotations
+	loop(i, 2)
 	{
-		VDP_SetSpriteExUniColor(carrot_index + i,     0, y0, (carrot_index + i) * 4, 3);
-		VDP_SetSpriteExUniColor(carrot_index + 1 + i, 0, y0, (carrot_index + 1 + i) * 4, VDP_SPRITE_CC + 1);
-		VDP_LoadSpritePattern(g_CarrotSpriteData,                     (carrot_index + i) * 4, 4);
-		VDP_LoadSpritePattern(g_CarrotSpriteData + 4 * 8,             (carrot_index + 1 + i) * 4, 4);
+		j = i * 4 * 8;
+		SpriteFX_RotateRight16(&g_CarrotSpriteData[j], &g_CarrotSpriteDataRotRight[j]);
+		SpriteFX_RotateLeft16(&g_CarrotSpriteData[j], &g_CarrotSpriteDataRotLeft[j]);
+		SpriteFX_RotateHalfTurn16(&g_CarrotSpriteData[j], &g_CarrotSpriteDataRotHalf[j]);
 	}
 
-	// rabbits
-	int rabbit_index = carrot_index + MAX_CARROTS_IN_CARRY * 2;
-	for (i = 0; i < RABBIT_COUNT; ++i )
+	// Set player colors
+	VDP_SetSpriteExUniColor(0, 0, 0, 0 * 4, 2);
+	VDP_SetSpriteExUniColor(1, 0, 0, 1 * 4, VDP_SPRITE_CC + 13);
+
+	// Set carrot bullets colors
+	u8 carrotIndex = 2;
+	for (i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
 	{
-		VDP_SetSpriteExUniColor(rabbit_index + i,     0, y0,               (rabbit_index + i) * 4, 10);
-		VDP_SetSpriteExUniColor(rabbit_index + 1 + i, 0, y0,               (rabbit_index + 1 + i) * 4, VDP_SPRITE_CC + 1);
-		VDP_LoadSpritePattern(g_RabbitSpriteData,                                   (rabbit_index + i) * 4, 4);
-		VDP_LoadSpritePattern(g_RabbitSpriteData + 4 * RABBIT_ANIMATION_FRAMES * 8, (rabbit_index + 1 + i) * 4, 4);
-	}
-	// rabbit dies
-	rabbit_index = rabbit_index + RABBIT_COUNT * 2;
-	for (i = 0; i < RABBIT_COUNT; ++i )
-	{
-		VDP_SetSpriteExUniColor(rabbit_index + i,     0, y0,               (rabbit_index + i) * 4, 10);
-		VDP_SetSpriteExUniColor(rabbit_index + 1 + i, 0, y0,               (rabbit_index + 1 + i) * 4, VDP_SPRITE_CC + 1);
-		VDP_LoadSpritePattern(g_RabbitDiesSpriteData,                                   (rabbit_index + i) * 4, 4);
-		VDP_LoadSpritePattern(g_RabbitDiesSpriteData + 4 * RABBIT_ANIMATION_FRAMES * 8, (rabbit_index + 1 + i) * 4, 4);
-	}
-	// rabbit eats
-	rabbit_index = rabbit_index + RABBIT_COUNT * 2;
-	for (i = 0; i < RABBIT_COUNT; ++i )
-	{
-		VDP_SetSpriteExUniColor(rabbit_index + i,     0, y0,               (rabbit_index + i) * 4, 10);
-		VDP_SetSpriteExUniColor(rabbit_index + 1 + i, 0, y0,               (rabbit_index + 1 + i) * 4, VDP_SPRITE_CC + 1);
-		VDP_LoadSpritePattern(g_RabbitEatsSpriteData,                                   (rabbit_index + i) * 4, 4);
-		VDP_LoadSpritePattern(g_RabbitEatsSpriteData + 4 * RABBIT_ANIMATION_FRAMES * 8, (rabbit_index + 1 + i) * 4, 4);
+		VDP_SetSpriteExUniColor(carrotIndex + i,     						0, 0, (carrotIndex + i) * 4, 							14);
+		VDP_SetSpriteExUniColor(carrotIndex + MAX_CARROTS_IN_CARRY + i, 	0, 0, (carrotIndex + MAX_CARROTS_IN_CARRY + i) * 4, 	VDP_SPRITE_CC + 1);
 	}
 
-
-	// Compute transformed sprite data
-	// loop(i, 6 * 2)
-	// {
-	// 	u16 idx = i * 4 * 8;
-	// 	SpriteFX_RotateRight16(&g_PatternData[idx], &g_PatternDataRotRight[idx]);
-	// 	SpriteFX_RotateLeft16(&g_PatternData[idx], &g_PatternDataRotLeft[idx]);
-	// 	SpriteFX_RotateHalfTurn16(&g_PatternData[idx], &g_PatternDataRotHalf[idx]);
-	// }
-
-	loop(i, 1 * 2)
+	// Set rabbit colors
+	u8 rabbitIndex = carrotIndex + MAX_CARROTS_IN_CARRY * 2;
+	for (i = 0; i < RABBIT_COUNT; ++i)
 	{
-		u16 idx = i * 4 * 8;
-		SpriteFX_RotateRight16(&g_CarrotSpriteData[idx], &g_CarrotSpriteDataRotRight[idx]);
-		SpriteFX_RotateLeft16(&g_CarrotSpriteData[idx], &g_CarrotSpriteDataRotLeft[idx]);
-		SpriteFX_RotateHalfTurn16(&g_CarrotSpriteData[idx], &g_CarrotSpriteDataRotHalf[idx]);
+		VDP_SetSpriteExUniColor(rabbitIndex + i,     				0, 0, (rabbitIndex + i) * 4, 					12);
+		VDP_SetSpriteExUniColor(rabbitIndex + RABBIT_COUNT + i, 	0, 0, (rabbitIndex + RABBIT_COUNT + i) * 4, 	VDP_SPRITE_CC + 3);
 	}
-
-	// VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (0*256*8), 32*4*8);
-	// VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (1*256*8), 32*4*8);
-	// VDP_FillVRAM_16K(COLOR_MERGE(COLOR_LIGHT_BLUE, COLOR_DARK_BLUE), g_ScreenColorLow + (32*4*8) + (2*256*8), 32*4*8);
 }
 
 //-----------------------------------------------------------------------------
 void UpdateDraw()
 {
-	// DRAW PLAYER
+	// Draw player
+	frame = (g_Frame >> 2) % PLAYER_ANIMATION_FRAMES;
+	pat = (frame * 8 * 4);
+	pat1 = g_PlayerSpriteData + pat;
+	pat2 = g_PlayerSpriteData + pat + PLAYER_ANIMATION_FRAMES * 4 * 8;
 
-	u8 frame = (g_Frame >> 2) % PLAYER_ANIMATION_FRAMES;
-	u8 pat = (frame * 8 * 4);
-	u8* pat1 = g_PlayerSpriteData + pat;
-	u8* pat2 = g_PlayerSpriteData + pat + PLAYER_ANIMATION_FRAMES * 4 * 8;
-
-	// Flip horizontal
-	VDP_SetSpritePosition(0, player.pos.x, player.pos.y); // white sprite
-	VDP_SetSpritePosition(1, player.pos.x, player.pos.y); // black sprite
+	VDP_SetSpritePosition(0, player.pos.x, player.pos.y);
+	VDP_SetSpritePosition(1, player.pos.x, player.pos.y);
 	if(player.flipHorizontal)
 	{
 		SpriteFX_FlipHorizontal16(pat1, g_Buffer1);
@@ -855,65 +810,61 @@ void UpdateDraw()
 		VDP_LoadSpritePattern(pat2, 4, 4);
 	}
 
-	frame = (g_Frame >> 2) % RABBIT_ANIMATION_FRAMES;
-	pat = (frame * 8 * 4);
-
-
-	pat1 = g_RabbitSpriteData + pat;
-	pat2 = g_RabbitSpriteData + pat + RABBIT_ANIMATION_FRAMES * 4 * 8;
-
-	for (i = 0; i < RABBIT_COUNT; ++i )
-	{
-		if (rabbits[i].state == 3) // dies
-		{
-			pat1 = g_RabbitDiesSpriteData + pat;
-			pat2 = g_RabbitDiesSpriteData + pat + RABBIT_ANIMATION_FRAMES * 4 * 8;
-		}
-		else if (rabbits[i].state == 2) // eats
-		{
-			pat1 = g_RabbitEatsSpriteData + pat;
-			pat2 = g_RabbitEatsSpriteData + pat + RABBIT_ANIMATION_FRAMES * 4 * 8;
-		}
-
-		VDP_SetSpritePosition(14 + i, rabbits[i].pos.x, rabbits[i].pos.y);
-		VDP_SetSpritePosition(15 + i, rabbits[i].pos.x, rabbits[i].pos.y);
-		// VDP_LoadSpritePattern(pat1, 14, 4);
-		// VDP_LoadSpritePattern(pat2, 14 + 1 * 4, 4);
-		if(rabbits[i].flipHorizontal)
-		{
-			SpriteFX_FlipHorizontal16(pat1, g_Buffer3);
-			SpriteFX_FlipHorizontal16(pat2, g_Buffer4);
-			VDP_LoadSpritePattern(g_Buffer3, (14 + i) * 4, 4);
-			VDP_LoadSpritePattern(g_Buffer4, (15 + i) * 4, 4);
-		}
-		else {
-			VDP_LoadSpritePattern(pat1, (14 + i) * 4, 4);
-			VDP_LoadSpritePattern(pat2, (15 + i) * 4, 4);
-		}
-	}
-
-	// DRAW CARROTS
+	// Draw carrot bullets
+	frame = (g_Frame >> 2) % 4;
 	for(i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
 	{
 		if(bullets[i].state == 1)
 		{
-			// VDP_SetSprite(8 + i, bullets[i].pos.x, bullets[i].pos.y, (4 * 8) + i * 4);
-			// VDP_SetSprite(9 + i, bullets[i].pos.x, bullets[i].pos.y, (4 * 9) + i * 4);
-			VDP_SetSpritePosition(8 + i, bullets[i].pos.x, bullets[i].pos.y);
-			VDP_SetSpritePosition(9 + i, bullets[i].pos.x, bullets[i].pos.y);
-			
-			u8 rot = (g_Frame >> 2) % 4;
-			VDP_LoadSpritePattern(g_CarRotAnim[rot], 		      (8 + i) * 4, 4);
-			VDP_LoadSpritePattern(g_CarRotAnim[rot] + 4 * 8, 	  (9 + i) * 4, 4);
+			VDP_SetSpritePosition(2 + i, 						bullets[i].pos.x, bullets[i].pos.y);
+			VDP_SetSpritePosition(2 + MAX_CARROTS_IN_CARRY + i, bullets[i].pos.x, bullets[i].pos.y);
+			VDP_LoadSpritePattern(g_CarRotAnim[frame], 			(2 + i) * 4, 						4);
+			VDP_LoadSpritePattern(g_CarRotAnim[frame] + 4 * 8, 	(2 + MAX_CARROTS_IN_CARRY + i) * 4, 4);
 		}
 		else
 		{
-			VDP_HideSprite(8 + i);
-			VDP_HideSprite(9 + i);
+			VDP_HideSprite(2 + i);
+			VDP_HideSprite(2 + MAX_CARROTS_IN_CARRY + i);
+		}
+	}
+
+	// Draw rabbits
+	frame = (g_Frame >> 2) % RABBIT_ANIMATION_FRAMES;
+	pat = (frame * 8 * 4);
+	for (i = 0; i < RABBIT_COUNT; ++i )
+	{
+		if (rabbits[i].state == 3) // Dies
+		{
+			pat1 = g_RabbitDiesSpriteData + pat;
+			pat2 = g_RabbitDiesSpriteData + pat + RABBIT_ANIMATION_FRAMES * 4 * 8;
+		}
+		else if (rabbits[i].state == 2) // Eats
+		{
+			pat1 = g_RabbitEatsSpriteData + pat;
+			pat2 = g_RabbitEatsSpriteData + pat + RABBIT_ANIMATION_FRAMES * 4 * 8;
+		}
+		else // Runs
+		{
+			pat1 = g_RabbitSpriteData + pat;
+			pat2 = g_RabbitSpriteData + pat + RABBIT_ANIMATION_FRAMES * 4 * 8;
+		}
+
+		VDP_SetSpritePosition(2 + MAX_CARROTS_IN_CARRY * 2 + i, 				rabbits[i].pos.x, rabbits[i].pos.y);
+		VDP_SetSpritePosition(2 + MAX_CARROTS_IN_CARRY * 2 + RABBIT_COUNT + i, 	rabbits[i].pos.x, rabbits[i].pos.y);
+		if(rabbits[i].flipHorizontal)
+		{
+			SpriteFX_FlipHorizontal16(pat1, g_Buffer3);
+			SpriteFX_FlipHorizontal16(pat2, g_Buffer4);
+			VDP_LoadSpritePattern(g_Buffer3, (2 + MAX_CARROTS_IN_CARRY * 2 + i) * 4, 				4);
+			VDP_LoadSpritePattern(g_Buffer4, (2 + MAX_CARROTS_IN_CARRY * 2 + RABBIT_COUNT + i) * 4, 4);
+		}
+		else
+		{
+			VDP_LoadSpritePattern(pat1, (2 + MAX_CARROTS_IN_CARRY * 2 + i) * 4, 					4);
+			VDP_LoadSpritePattern(pat2, (2 + MAX_CARROTS_IN_CARRY * 2 + RABBIT_COUNT + i) * 4, 		4);
 		}
 	}
 }
-
 
 void UpdateTimeUI()
 {

@@ -1,0 +1,1 @@
+MSXimg Tilemap.bmp -format c -out tilemap.h -name g_tilemap -mode bmp -bpc 4 -pal custom

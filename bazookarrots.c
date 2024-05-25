@@ -52,6 +52,7 @@ typedef struct
 {
 	u8 state; // 0 = Inactive, 1 = Running to target, 2 = Eating, 3 = Hit
 	u16 actionTimer; // If not zero, do not change state
+	u8 deadFrame;
     u8 target; // Index in target list
 	VectorI16 pos;
 	bool flipHorizontal;
@@ -80,6 +81,7 @@ typedef struct
 	VectorI16 pos;
 	u8 carrots;
 	bool flipHorizontal;
+	bool isMoving;
 } Player;
 
 // Game data
@@ -318,6 +320,7 @@ void UpdateGame()
 		player.pos.x += PLAYER_SPEED_DIAGONAL;
 		player.dir = 1;
 		player.flipHorizontal = false;
+		player.isMoving = true;
 	}
 	else if(Keyboard_IsKeyPressed(KEY_UP) && Keyboard_IsKeyPressed(KEY_LEFT))
 	{
@@ -325,6 +328,7 @@ void UpdateGame()
 		player.pos.x -= PLAYER_SPEED_DIAGONAL;
 		player.dir = 7;
 		player.flipHorizontal = true;
+		player.isMoving = true;
 	}
 	else if(Keyboard_IsKeyPressed(KEY_DOWN) && Keyboard_IsKeyPressed(KEY_RIGHT))
 	{
@@ -332,6 +336,7 @@ void UpdateGame()
 		player.pos.x += PLAYER_SPEED_DIAGONAL;
 		player.dir = 3;
 		player.flipHorizontal = false;
+		player.isMoving = true;
 	}
 	else if(Keyboard_IsKeyPressed(KEY_DOWN) && Keyboard_IsKeyPressed(KEY_LEFT))
 	{
@@ -339,32 +344,37 @@ void UpdateGame()
 		player.pos.x -= PLAYER_SPEED_DIAGONAL;
 		player.dir = 5;
 		player.flipHorizontal = true;
+		player.isMoving = true;
 	}
 	else if(Keyboard_IsKeyPressed(KEY_UP))
 	{
 		player.pos.y -= PLAYER_SPEED;
 		player.dir = 0;
+		player.isMoving = true;
 	}
 	else if(Keyboard_IsKeyPressed(KEY_DOWN))
 	{
 		player.pos.y += PLAYER_SPEED;
 		player.dir = 4;
+		player.isMoving = true;
 	}
 	else if(Keyboard_IsKeyPressed(KEY_RIGHT))
 	{
 		player.pos.x += PLAYER_SPEED;
 		player.flipHorizontal = false;
 		player.dir = 2;
+		player.isMoving = true;
 	}
 	else if(Keyboard_IsKeyPressed(KEY_LEFT))
 	{
 		player.dir = 6;
 		player.pos.x -= PLAYER_SPEED;
 		player.flipHorizontal = true;
+		player.isMoving = true;
 	}
 	else
 	{
-		// TODO: Stop player walk
+		player.isMoving = false;
 	}
 
 	if(player.carrots > 0)
@@ -388,14 +398,15 @@ void UpdateGame()
 			// Did we hit a rabbit?
 			for(j = 0; j < RABBIT_COUNT; ++j)
 			{
-				if(rabbits[j].state != 0 || rabbits[j].state != 3)
+				if(rabbits[j].state != 0 && rabbits[j].state != 3)
 				{
 					if(CheckBoxCollision(&bullets[i].pos, &rabbits[j].pos, BULLET_SIZE, RABBIT_SIZE))
 					{
 						// Rabbit is hit with a bullet!
 						bullets[i].state = 0;
 						rabbits[j].state = 3;
-						rabbits[j].actionTimer = 1 * 60;
+						rabbits[j].actionTimer = 150;
+						rabbits[j].deadFrame = 0;
 					}
 				}
 			}
@@ -640,12 +651,14 @@ void InitGameOver()
 		VDP_SetPaletteEntry(i, RGB16(0, 0, 0));
 	VDP_SetPaletteEntry(COLOR_WHITE, RGB16(7, 7, 7));
 	Print_SetColor(COLOR_WHITE, COLOR_BLACK);
-	Print_SetPosition(80, 80);
+	Print_SetPosition(50, 80);
 	Print_DrawText("GAME OVER");
-	Print_SetPosition(80, 90);
+	Print_SetPosition(50, 90);
 	Print_DrawText("SCORE");
-	Print_SetPosition(80, 100);
+	Print_SetPosition(50 + 48, 90);
 	Print_DrawInt(score);
+	Print_SetPosition(50, 100);
+	Print_DrawText("PRESS R TO RESTART");
 }
 
 void UpdateGameOver()
@@ -731,7 +744,9 @@ void InitDraw()
 
 	// Load palette
 	for(u8 i = 0; i < 15; ++i)
+	{
 		VDP_SetPaletteEntry(i + 1, *(u16*)&g_tilemap_palette[i*2]);
+	}
 
 	// Draw level
 	Tile_SetDrawPage(0);
@@ -793,7 +808,14 @@ void InitDraw()
 void UpdateDraw()
 {
 	// Draw player
-	frame = (g_Frame >> 2) % PLAYER_ANIMATION_FRAMES;
+	if(player.isMoving)
+	{
+		frame = (g_Frame >> 2) % PLAYER_ANIMATION_FRAMES;
+	}
+	else 
+	{
+		frame = 1;
+	}
 	pat = (frame * 8 * 4);
 	pat1 = g_PlayerSpriteData + pat;
 	pat2 = g_PlayerSpriteData + pat + PLAYER_ANIMATION_FRAMES * 4 * 8;
@@ -807,7 +829,8 @@ void UpdateDraw()
 		VDP_LoadSpritePattern(g_Buffer1, 0, 4);
 		VDP_LoadSpritePattern(g_Buffer2, 4, 4);
 	}
-	else {
+	else
+	{
 		VDP_LoadSpritePattern(pat1, 0, 4);
 		VDP_LoadSpritePattern(pat2, 4, 4);
 	}
@@ -837,6 +860,11 @@ void UpdateDraw()
 	{
 		if (rabbits[i].state == 3) // Dies
 		{
+			if(rabbits[i].deadFrame < 3 && g_Frame % 10 == 0)
+			{
+				rabbits[i].deadFrame++;
+			}
+			pat = (rabbits[i].deadFrame * 8 * 4);
 			pat1 = g_RabbitDiesSpriteData + pat;
 			pat2 = g_RabbitDiesSpriteData + pat + RABBIT_ANIMATION_FRAMES * 4 * 8;
 		}

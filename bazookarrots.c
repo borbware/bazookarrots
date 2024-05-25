@@ -648,9 +648,12 @@ void InitGameOver()
 {
 	VDP_HideAllSprites();
 	for(u8 i = 0; i < 16; ++i)
+	{
 		VDP_SetPaletteEntry(i, RGB16(0, 0, 0));
-	VDP_SetPaletteEntry(COLOR_WHITE, RGB16(7, 7, 7));
-	Print_SetColor(COLOR_WHITE, COLOR_BLACK);
+	}
+	VDP_SetColor(1);
+	VDP_SetPaletteEntry(6, RGB16(7, 3, 0));
+	Print_SetColor(6, 1);
 	Print_SetPosition(50, 80);
 	Print_DrawText("GAME OVER");
 	Print_SetPosition(50, 90);
@@ -756,7 +759,7 @@ void InitDraw()
 
 	// Setup and draw UI
 	Print_SetBitmapFont(g_Font_MGL_Sample8);
-	Print_SetColor(4, 15);
+	Print_SetColor(1, 10);
 	Print_SetPosition(50, 4);
 	Print_DrawText("TIME");
 	Print_SetPosition(50, 14);
@@ -784,23 +787,23 @@ void InitDraw()
 	}
 
 	// Set player colors
-	VDP_SetSpriteExUniColor(0, 0, 0, 0 * 4, 2);
-	VDP_SetSpriteExUniColor(1, 0, 0, 1 * 4, VDP_SPRITE_CC + 13);
+	VDP_SetSpriteExUniColor(0, 0, 0, 0 * 4, 4);
+	VDP_SetSpriteExUniColor(1, 0, 0, 1 * 4, VDP_SPRITE_CC + 6);
 
 	// Set carrot bullets colors
 	u8 carrotIndex = 2;
 	for (i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
 	{
-		VDP_SetSpriteExUniColor(carrotIndex + i,     						0, 0, (carrotIndex + i) * 4, 							14);
-		VDP_SetSpriteExUniColor(carrotIndex + MAX_CARROTS_IN_CARRY + i, 	0, 0, (carrotIndex + MAX_CARROTS_IN_CARRY + i) * 4, 	VDP_SPRITE_CC + 1);
+		VDP_SetSpriteExUniColor(carrotIndex + i,     						0, 0, (carrotIndex + i) * 4, 							13);
+		VDP_SetSpriteExUniColor(carrotIndex + MAX_CARROTS_IN_CARRY + i, 	0, 0, (carrotIndex + MAX_CARROTS_IN_CARRY + i) * 4, 	VDP_SPRITE_CC + 14);
 	}
 
 	// Set rabbit colors
 	u8 rabbitIndex = carrotIndex + MAX_CARROTS_IN_CARRY * 2;
 	for (i = 0; i < RABBIT_COUNT; ++i)
 	{
-		VDP_SetSpriteExUniColor(rabbitIndex + i,     				0, 0, (rabbitIndex + i) * 4, 					12);
-		VDP_SetSpriteExUniColor(rabbitIndex + RABBIT_COUNT + i, 	0, 0, (rabbitIndex + RABBIT_COUNT + i) * 4, 	VDP_SPRITE_CC + 3);
+		VDP_SetSpriteExUniColor(rabbitIndex + i,     				0, 0, (rabbitIndex + i) * 4, 					4);
+		VDP_SetSpriteExUniColor(rabbitIndex + RABBIT_COUNT + i, 	0, 0, (rabbitIndex + RABBIT_COUNT + i) * 4, 	VDP_SPRITE_CC + 9);
 	}
 }
 

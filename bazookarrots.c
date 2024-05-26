@@ -759,7 +759,7 @@ void InitDraw()
 
 	// Setup and draw UI
 	Print_SetBitmapFont(g_Font_MGL_Sample8);
-	Print_SetColor(1, 10);
+	Print_SetColor(15, 4);
 	Print_SetPosition(50, 4);
 	Print_DrawText("TIME");
 	Print_SetPosition(50, 14);

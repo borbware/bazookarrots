@@ -716,22 +716,22 @@ void InitDraw()
 
 	// Setup screen
 	VDP_SetMode(VDP_MODE_SCREEN5);
-	//VDP_SetPaletteEntry(0, RGB16(7, 7, 7)); // WHITE
-	//VDP_SetPaletteEntry(1, RGB16(0, 7, 0)); // CARROT GREEN
-	//VDP_SetPaletteEntry(2, RGB16(7, 6, 5)); // PLAYER SKIN
-	//VDP_SetPaletteEntry(3, RGB16(7, 0, 0)); // RABBIT EYE
-	//VDP_SetPaletteEntry(4, RGB16(5, 7, 7)); // SKY BLUE
-	//VDP_SetPaletteEntry(5, RGB16(3, 6, 2)); // GRASS
-	//VDP_SetPaletteEntry(6, RGB16(3, 5, 2)); // GRASS DARK
-	//VDP_SetPaletteEntry(7, RGB16(4, 6, 3)); // GRASS LIGHT
-	//VDP_SetPaletteEntry(8, RGB16(5, 3, 0)); // DIRT
-	//VDP_SetPaletteEntry(9, RGB16(3, 1, 0)); // DIRT DARK
-	//VDP_SetPaletteEntry(10, RGB16(3, 4, 4)); // METAL GRAY
-	//VDP_SetPaletteEntry(11, RGB16(7, 7, 0)); // SUN
-	//VDP_SetPaletteEntry(12, RGB16(6, 6, 6)); // RABBIT WHITE
-	//VDP_SetPaletteEntry(13, RGB16(1, 1, 7)); // PLAYER GUN
-	//VDP_SetPaletteEntry(14, RGB16(7, 3, 1)); // CARROT ORANGE
-	//VDP_SetPaletteEntry(15, RGB16(0, 0, 0)); // BLACK
+	VDP_SetPaletteEntry(0, RGB16(7, 7, 7)); // WHITE
+	VDP_SetPaletteEntry(1, RGB16(0, 7, 0)); // CARROT GREEN
+	VDP_SetPaletteEntry(2, RGB16(7, 6, 5)); // PLAYER SKIN
+	VDP_SetPaletteEntry(3, RGB16(7, 0, 0)); // RABBIT EYE
+	VDP_SetPaletteEntry(4, RGB16(5, 7, 7)); // SKY BLUE
+	VDP_SetPaletteEntry(5, RGB16(3, 6, 2)); // GRASS
+	VDP_SetPaletteEntry(6, RGB16(3, 5, 2)); // GRASS DARK
+	VDP_SetPaletteEntry(7, RGB16(4, 6, 3)); // GRASS LIGHT
+	VDP_SetPaletteEntry(8, RGB16(5, 3, 0)); // DIRT
+	VDP_SetPaletteEntry(9, RGB16(3, 1, 0)); // DIRT DARK
+	VDP_SetPaletteEntry(10, RGB16(3, 4, 4)); // METAL GRAY
+	VDP_SetPaletteEntry(11, RGB16(7, 7, 0)); // SUN
+	VDP_SetPaletteEntry(12, RGB16(6, 6, 6)); // RABBIT WHITE
+	VDP_SetPaletteEntry(13, RGB16(1, 1, 7)); // PLAYER GUN
+	VDP_SetPaletteEntry(14, RGB16(7, 3, 1)); // CARROT ORANGE
+	VDP_SetPaletteEntry(15, RGB16(0, 0, 0)); // BLACK
 	
 	VDP_SetColor(15);
 	VDP_SetPage(0);
@@ -746,10 +746,10 @@ void InitDraw()
 	Tile_LoadBank(2, g_tilemap, sizeof(g_tilemap) / TILE_CELL_BYTES);
 
 	// Load palette
-	for(u8 i = 0; i < 15; ++i)
-	{
-		VDP_SetPaletteEntry(i + 1, *(u16*)&g_tilemap_palette[i*2]);
-	}
+	//for(u8 i = 0; i < 15; ++i)
+	//{
+	//	VDP_SetPaletteEntry(i + 1, *(u16*)&g_tilemap_palette[i*2]);
+	//}
 
 	// Draw level
 	Tile_SetDrawPage(0);
@@ -787,23 +787,23 @@ void InitDraw()
 	}
 
 	// Set player colors
-	VDP_SetSpriteExUniColor(0, 0, 0, 0 * 4, 4);
-	VDP_SetSpriteExUniColor(1, 0, 0, 1 * 4, VDP_SPRITE_CC + 6);
+	VDP_SetSpriteExUniColor(0, 0, 0, 0 * 4, 2);
+	VDP_SetSpriteExUniColor(1, 0, 0, 1 * 4, VDP_SPRITE_CC + 13);
 
 	// Set carrot bullets colors
 	u8 carrotIndex = 2;
 	for (i = 0; i < MAX_CARROTS_IN_CARRY; ++i)
 	{
-		VDP_SetSpriteExUniColor(carrotIndex + i,     						0, 0, (carrotIndex + i) * 4, 							13);
-		VDP_SetSpriteExUniColor(carrotIndex + MAX_CARROTS_IN_CARRY + i, 	0, 0, (carrotIndex + MAX_CARROTS_IN_CARRY + i) * 4, 	VDP_SPRITE_CC + 14);
+		VDP_SetSpriteExUniColor(carrotIndex + i,     						0, 0, (carrotIndex + i) * 4, 							14);
+		VDP_SetSpriteExUniColor(carrotIndex + MAX_CARROTS_IN_CARRY + i, 	0, 0, (carrotIndex + MAX_CARROTS_IN_CARRY + i) * 4, 	VDP_SPRITE_CC + 1);
 	}
 
 	// Set rabbit colors
 	u8 rabbitIndex = carrotIndex + MAX_CARROTS_IN_CARRY * 2;
 	for (i = 0; i < RABBIT_COUNT; ++i)
 	{
-		VDP_SetSpriteExUniColor(rabbitIndex + i,     				0, 0, (rabbitIndex + i) * 4, 					4);
-		VDP_SetSpriteExUniColor(rabbitIndex + RABBIT_COUNT + i, 	0, 0, (rabbitIndex + RABBIT_COUNT + i) * 4, 	VDP_SPRITE_CC + 9);
+		VDP_SetSpriteExUniColor(rabbitIndex + i,     				0, 0, (rabbitIndex + i) * 4, 					12);
+		VDP_SetSpriteExUniColor(rabbitIndex + RABBIT_COUNT + i, 	0, 0, (rabbitIndex + RABBIT_COUNT + i) * 4, 	VDP_SPRITE_CC + 3);
 	}
 }
 

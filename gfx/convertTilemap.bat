@@ -1,1 +1,1 @@
-MSXimg Tilemap.bmp -format c -out tilemap.h -name g_tilemap -mode bmp -bpc 4 -pal custom
+MSXimg Tilemap.bmp -format c -out tilemap.h -name g_tilemap -mode bmp -bpc 4 -pal input 16 0xFFFFFF 0x24FF00 0xFFFFDB 0xFF0000 0xDBFFFF 0x00B600 0x004900 0x6DDB6D 0x924900 0x492400 0x929292 0xFFFF00 0xDBDBDB 0x0000FF 0xFF6D00 0x000000

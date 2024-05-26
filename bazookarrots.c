@@ -716,22 +716,22 @@ void InitDraw()
 
 	// Setup screen
 	VDP_SetMode(VDP_MODE_SCREEN5);
-	VDP_SetPaletteEntry(0, RGB16(7, 7, 7)); // WHITE
-	VDP_SetPaletteEntry(1, RGB16(0, 7, 0)); // CARROT GREEN
-	VDP_SetPaletteEntry(2, RGB16(7, 6, 5)); // PLAYER SKIN
-	VDP_SetPaletteEntry(3, RGB16(7, 0, 0)); // RABBIT EYE
-	VDP_SetPaletteEntry(4, RGB16(5, 7, 7)); // SKY BLUE
-	VDP_SetPaletteEntry(5, RGB16(3, 6, 2)); // GRASS
-	VDP_SetPaletteEntry(6, RGB16(3, 5, 2)); // GRASS DARK
-	VDP_SetPaletteEntry(7, RGB16(4, 6, 3)); // GRASS LIGHT
-	VDP_SetPaletteEntry(8, RGB16(5, 3, 0)); // DIRT
-	VDP_SetPaletteEntry(9, RGB16(3, 1, 0)); // DIRT DARK
-	VDP_SetPaletteEntry(10, RGB16(3, 4, 4)); // METAL GRAY
-	VDP_SetPaletteEntry(11, RGB16(7, 7, 0)); // SUN
-	VDP_SetPaletteEntry(12, RGB16(6, 6, 6)); // RABBIT WHITE
-	VDP_SetPaletteEntry(13, RGB16(1, 1, 7)); // PLAYER GUN
-	VDP_SetPaletteEntry(14, RGB16(7, 3, 1)); // CARROT ORANGE
-	VDP_SetPaletteEntry(15, RGB16(0, 0, 0)); // BLACK
+	VDP_SetPaletteEntry(0, RGB16(7, 7, 7));  // WHITE 			0xFFFFFF
+	VDP_SetPaletteEntry(1, RGB16(0, 7, 0));  // CARROT GREEN 	0x24FF00
+	VDP_SetPaletteEntry(2, RGB16(7, 6, 5));  // PLAYER SKIN 	0xFFFFDB
+	VDP_SetPaletteEntry(3, RGB16(7, 0, 0));  // RABBIT EYE 		0xFF0000
+	VDP_SetPaletteEntry(4, RGB16(5, 7, 7));  // SKY BLUE 		0xDBFFFF
+	VDP_SetPaletteEntry(5, RGB16(3, 6, 2));  // GRASS 			0x00B600
+	VDP_SetPaletteEntry(6, RGB16(3, 5, 2));  // GRASS DARK 		0x004900
+	VDP_SetPaletteEntry(7, RGB16(4, 6, 3));  // GRASS LIGHT 	0x6DDB6D
+	VDP_SetPaletteEntry(8, RGB16(5, 3, 0));  // DIRT 			0x924900
+	VDP_SetPaletteEntry(9, RGB16(3, 1, 0));  // DIRT DARK 		0x492400
+	VDP_SetPaletteEntry(10, RGB16(3, 4, 4)); // METAL GRAY 		0x929292
+	VDP_SetPaletteEntry(11, RGB16(7, 7, 0)); // SUN 			0xFFFF00
+	VDP_SetPaletteEntry(12, RGB16(6, 6, 6)); // RABBIT WHITE 	0xDBDBDB
+	VDP_SetPaletteEntry(13, RGB16(1, 1, 7)); // PLAYER GUN 		0x0000FF
+	VDP_SetPaletteEntry(14, RGB16(7, 3, 1)); // CARROT ORANGE 	0xFF6D00
+	VDP_SetPaletteEntry(15, RGB16(0, 0, 0)); // BLACK 			0x000000
 	
 	VDP_SetColor(15);
 	VDP_SetPage(0);
